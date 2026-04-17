@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>Aevi — Your Second Mind</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --white:#FFFFFF;--off:#FAFAF8;--canvas:#F7F4F0;
+  --blush:#F0E4E4;--pink1:#E4D0D0;--pink2:#D5B4B4;
+  --rose:#867070;--rose-d:#5C4A4A;--rose-deep:#3D2B2B;
+  --rose-m:#A08888;--rose-pale:#C4A8A8;
+  --serif:'Cormorant Garamond',Georgia,serif;
+  --sans:'Plus Jakarta Sans',sans-serif;
+}
+html,body{height:100%;background:#EDE5E5;}
+body{display:flex;justify-content:center;font-family:var(--sans);}
+#app{width:100%;max-width:430px;min-height:100vh;background:var(--white);display:flex;flex-direction:column;position:relative;overflow:hidden;}
+textarea,input{outline:none;}
+button{cursor:pointer;}
+.screen{flex:1;display:flex;flex-direction:column;min-height:100vh;}
+@keyframes slideInRight{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideInLeft{from{opacity:0;transform:translateX(-40px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.slide-right{animation:slideInRight .28s cubic-bezier(.25,.46,.45,.94) forwards;}
+.slide-left{animation:slideInLeft .28s cubic-bezier(.25,.46,.45,.94) forwards;}
+.slide-up{animation:slideInUp .32s cubic-bezier(.25,.46,.45,.94) forwards;}
+.fade{animation:fadeIn .22s ease forwards;}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}33%{transform:translateY(-8px) rotate(1deg)}66%{transform:translateY(-4px) rotate(-1deg)}}
+@keyframes breathe{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.04)}}
+@keyframes dot{0%,100%{opacity:.3;transform:scale(.7)}50%{opacity:1;transform:scale(1)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:0;}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const C={
+  white:'#FFFFFF',off:'#FAFAF8',canvas:'#F7F4F0',
+  blush:'#F0E4E4',pink1:'#E4D0D0',pink2:'#D5B4B4',
+  rose:'#867070',rosed:'#5C4A4A',rosedp:'#3D2B2B',
+  rosem:'#A08888',rosep:'#C4A8A8',
+};
+const S={serif:"'Cormorant Garamond',Georgia,serif",sans:"'Plus Jakarta Sans',sans-serif"};
+
+const state={screen:'welcome',user:{name:'',goal:'',tone:'',topics:[]},msgs:[],mem:[],loading:false};
+
+async function gs(k){try{const r=await window.storage?.get(k);return r?JSON.parse(r.value):null}catch{return null}}
+async function ss(k,v){try{await window.storage?.set(k,JSON.stringify(v))}catch{}}
+
+async function init(){
+  const[u,m,msgs]=await Promise.all([gs('aevi_u'),gs('aevi_m'),gs('aevi_msgs')]);
+  if(u){state.user=u;state.screen='home';}
+  if(m)state.mem=m;
+  if(msgs)state.msgs=msgs;
+  render('fade');
+}
+
+// screen order for determining transition direction
+const SCREEN_ORDER=['welcome','signup','onboarding','persona','home','chat','insights','upgrade'];
+
+function go(s,dir){
+  const prevScreen=state.screen;
+  state.screen=s;
+  // determine direction
+  if(!dir){
+    const pi=SCREEN_ORDER.indexOf(prevScreen);
+    const ci=SCREEN_ORDER.indexOf(s);
+    if(s==='home'&&prevScreen==='chat')dir='left';
+    else if(s==='chat'&&prevScreen==='home')dir='right';
+    else if(s==='welcome')dir='left';
+    else if(ci>pi)dir='right';
+    else if(ci<pi)dir='left';
+    else dir='fade';
+  }
+  render(dir);
+  window.scrollTo(0,0);
+}
+
+function render(dir='right'){
+  const app=document.getElementById('app');
+  // fade out current
+  const existing=app.firstChild;
+  if(existing&&existing.classList){
+    existing.style.animation='none';
+    existing.style.opacity='0';
+  }
+  const screens={welcome,signup,onboarding,persona,home,chat,insights,upgrade};
+  const newEl=screens[state.screen]?.();
+  if(!newEl)return;
+  // apply transition class
+  const cls=dir==='right'?'slide-right':dir==='left'?'slide-left':dir==='up'?'slide-up':'fade';
+  newEl.classList.add(cls);
+  // remove screen class animation conflict
+  newEl.style.animation='none';
+  setTimeout(()=>{newEl.style.animation='';},10);
+  app.innerHTML='';
+  app.appendChild(newEl);
+}
+
+// ── HELPERS ──
+function el(tag,attrs,...kids){
+  const e=document.createElement(tag);
+  for(const[k,v]of Object.entries(attrs||{})){
+    if(k==='style'&&typeof v==='object')Object.assign(e.style,v);
+    else if(k.startsWith('on'))e.addEventListener(k.slice(2).toLowerCase(),v);
+    else if(k==='class')e.className=v;
+    else e.setAttribute(k,v);
+  }
+  for(const c of kids){
+    if(c==null)continue;
+    e.appendChild(typeof c==='string'?document.createTextNode(c):c);
+  }
+  return e;
+}
+const div=(a,...c)=>el('div',a,...c);
+const btn=(a,...c)=>el('button',a,...c);
+const p=(a,...c)=>el('p',a,...c);
+const h=(n,a,...c)=>el('h'+n,a,...c);
+const span=(a,...c)=>el('span',a,...c);
+const inp=(a)=>el('input',a);
+
+function mem_tag(){
+  const w=div({style:{width:'8px',height:'8px',borderRadius:'50%',background:'#7EC8A4',animation:'breathe 2s ease-in-out infinite',flexShrink:'0'}});
+  return w;
+}
+
+// ── BOTTOM NAV ──
+function nav(active){
+  const n=div({style:{
+    position:'fixed',bottom:'0',left:'50%',transform:'translateX(-50%)',
+    width:'100%',maxWidth:'430px',
+    background:'rgba(255,255,255,0.96)',
+    backdropFilter:'blur(24px)',WebkitBackdropFilter:'blur(24px)',
+    borderTop:'1px solid rgba(228,208,208,0.4)',
+    display:'flex',alignItems:'center',
+    padding:'8px 8px 26px',zIndex:'20',
+    gap:'4px'
+  }});
+  [['⌂','Home','home'],['✦','Chat','chat'],['◎','Insights','insights'],['↑','Upgrade','upgrade']].forEach(([icon,label,s])=>{
+    const isActive=active===s;
+    const b=btn({onClick:()=>go(s,'fade'),style:{
+      flex:'1',display:'flex',flexDirection:'column',alignItems:'center',
+      gap:'3px',background:isActive?`rgba(134,112,112,0.08)`:'none',
+      border:'none',borderRadius:'14px',padding:'8px 4px',
+      transition:'all .2s',cursor:'pointer'
+    }},
+      span({style:{fontSize:'17px',color:isActive?C.rose:C.rosep,lineHeight:'1.2',transition:'all .2s'}},(icon)),
+      span({style:{fontSize:'10px',color:isActive?C.rose:C.rosep,fontFamily:S.sans,letterSpacing:'.02em',fontWeight:isActive?'600':'400',transition:'all .2s'}},(label))
+    );
+    n.appendChild(b);
+  });
+  return n;
+}
+
+// ── WELCOME ──
+function welcome(){
+  const s=div({class:'screen',style:{background:`linear-gradient(180deg, ${C.white} 0%, ${C.canvas} 100%)`,position:'relative',overflow:'hidden'}});
+
+  // decorative background circles
+  const bg1=div({style:{position:'absolute',top:'-60px',right:'-60px',width:'220px',height:'220px',borderRadius:'50%',background:`radial-gradient(circle, rgba(213,180,180,0.15) 0%, transparent 70%)`,pointerEvents:'none'}});
+  const bg2=div({style:{position:'absolute',bottom:'120px',left:'-80px',width:'260px',height:'260px',borderRadius:'50%',background:`radial-gradient(circle, rgba(196,168,168,0.12) 0%, transparent 70%)`,pointerEvents:'none'}});
+  s.append(bg1,bg2);
+
+  const body=div({style:{flex:'1',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'space-between',padding:'90px 32px 48px',position:'relative',zIndex:'1'}});
+
+  // top section
+  const top=div({style:{textAlign:'center',width:'100%'}});
+
+  // animated orb
+  const orbWrap=div({style:{position:'relative',width:'88px',height:'88px',margin:'0 auto 32px'}});
+  const ring1=div({style:{position:'absolute',inset:'-12px',borderRadius:'50%',border:'1px solid rgba(213,180,180,0.3)',animation:'breathe 3s ease-in-out infinite'}});
+  const ring2=div({style:{position:'absolute',inset:'-24px',borderRadius:'50%',border:'1px dashed rgba(196,168,168,0.15)',animation:'breathe 3s ease-in-out infinite',animationDelay:'.5s'}});
+  const orb=div({style:{width:'100%',height:'100%',borderRadius:'50%',background:`conic-gradient(from 180deg, ${C.pink2}, ${C.rose}, ${C.pink2})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',color:C.white,boxShadow:`0 12px 40px rgba(134,112,112,0.35), 0 0 0 1px rgba(255,255,255,0.4) inset`,animation:'float 5s ease-in-out infinite',fontFamily:S.sans,fontWeight:'600'}}, '✦');
+  orbWrap.append(ring2,ring1,orb);
+  top.appendChild(orbWrap);
+
+  // wordmark
+  const wordmark=h(1,{style:{fontFamily:S.serif,fontSize:'52px',fontWeight:'500',color:C.rosedp,letterSpacing:'-.02em',lineHeight:'1',marginBottom:'6px',fontStyle:'italic'}},'Aevi');
+  const tagline=p({style:{fontFamily:S.serif,fontSize:'16px',color:C.rosem,fontStyle:'italic',lineHeight:'1.7',maxWidth:'240px',margin:'0 auto'}},'Your private second mind that remembers, reflects, and evolves with you.');
+  top.append(wordmark,tagline);
+
+  // divider
+  const divider=div({style:{display:'flex',alignItems:'center',gap:'12px',margin:'32px auto',maxWidth:'200px'}});
+  divider.append(
+    div({style:{flex:'1',height:'1px',background:`rgba(213,180,180,0.4)`}}),
+    span({style:{fontSize:'10px',color:C.rosep,letterSpacing:'.1em',fontFamily:S.sans}}, '✦'),
+    div({style:{flex:'1',height:'1px',background:`rgba(213,180,180,0.4)`}})
+  );
+  top.appendChild(divider);
+
+  body.appendChild(top);
+
+  // bottom buttons
+  const btns=div({style:{width:'100%',display:'flex',flexDirection:'column',gap:'10px'}});
+  const b1=btn({onClick:()=>go('signup'),style:{
+    width:'100%',padding:'16px',borderRadius:'100px',border:'none',
+    background:`linear-gradient(135deg, ${C.rose} 0%, ${C.rosed} 100%)`,
+    color:C.white,fontSize:'15px',fontFamily:S.sans,fontWeight:'500',
+    boxShadow:`0 8px 28px rgba(134,112,112,0.38)`,
+    letterSpacing:'.01em',transition:'transform .15s, box-shadow .15s'
+  }}, 'Begin your journey →');
+  b1.addEventListener('mouseover',()=>{b1.style.transform='translateY(-1px)';b1.style.boxShadow='0 12px 36px rgba(134,112,112,0.45)';});
+  b1.addEventListener('mouseout',()=>{b1.style.transform='';b1.style.boxShadow=`0 8px 28px rgba(134,112,112,0.38)`;});
+
+  const b2=btn({onClick:()=>go('home','left'),style:{
+    width:'100%',padding:'14px',borderRadius:'100px',
+    border:`1.5px solid rgba(213,180,180,0.5)`,
+    background:'transparent',color:C.rosed,fontSize:'14px',
+    fontFamily:S.sans,letterSpacing:'.01em'
+  }}, 'I already have an account');
+
+  const note=p({style:{textAlign:'center',fontSize:'11px',color:C.rosep,fontFamily:S.sans,letterSpacing:'.04em',marginTop:'8px'}},'Private · Remembered · Yours');
+  btns.append(b1,b2,note);
+  body.appendChild(btns);
+  s.appendChild(body);
+  return s;
+}
+
+// ── SIGNUP ──
+function signup(){
+  const s=div({class:'screen',style:{background:C.white,padding:'0'}});
+  const header=div({style:{padding:'56px 28px 0'}});
+  header.appendChild(btn({onClick:()=>go('welcome','left'),style:{background:'none',border:'none',color:C.rosem,fontSize:'22px',marginBottom:'28px',display:'block',padding:'0'}},'←'));
+  header.appendChild(h(2,{style:{fontFamily:S.serif,fontSize:'36px',fontWeight:'500',color:C.rosedp,letterSpacing:'-.01em',fontStyle:'italic',lineHeight:'1.1',marginBottom:'8px'}},'Create your\nprivate space'));
+  header.appendChild(p({style:{fontSize:'13px',color:C.rosem,fontFamily:S.sans,marginBottom:'36px',lineHeight:'1.6'}},'Your thoughts stay here. Always.'));
+  s.appendChild(header);
+
+  const form=div({style:{padding:'0 28px',flex:'1',display:'flex',flexDirection:'column'}});
+
+  let nameV='',emailV='',pwV='';
+  [[' Your name','text','What should I call you?',v=>nameV=v],['Email','email','you@example.com',v=>emailV=v],['Password','password','••••••••',v=>pwV=v]].forEach(([label,type,ph,cb])=>{
+    const fw=div({style:{marginBottom:'20px'}});
+    fw.appendChild(p({style:{fontSize:'11px',color:C.rosem,fontFamily:S.sans,letterSpacing:'.07em',textTransform:'uppercase',marginBottom:'8px'}},label.trim()));
+    const i=inp({type,placeholder:ph,style:{
+      width:'100%',padding:'14px 18px',
+      borderRadius:'14px',border:`1.5px solid rgba(213,180,180,0.4)`,
+      background:C.off,color:C.rosedp,fontSize:'15px',
+      fontFamily:S.sans,transition:'border-color .2s, box-shadow .2s'
+    }});
+    i.addEventListener('focus',()=>{i.style.borderColor=C.rose;i.style.boxShadow=`0 0 0 3px rgba(134,112,112,0.1)`;});
+    i.addEventListener('blur',()=>{i.style.borderColor='rgba(213,180,180,0.4)';i.style.boxShadow='none';});
+    i.addEventListener('input',e=>cb(e.target.value));
+    fw.appendChild(i);
+    form.appendChild(fw);
+  });
+
+  form.appendChild(div({style:{flex:'1'}}));
+
+  const cBtn=btn({onClick:()=>{if(nameV.trim()){state.user.name=nameV.trim();go('onboarding');}},style:{
+    width:'100%',padding:'16px',borderRadius:'100px',border:'none',
+    background:`linear-gradient(135deg,${C.rose},${C.rosed})`,
+    color:C.white,fontSize:'15px',fontFamily:S.sans,fontWeight:'500',
+    boxShadow:`0 8px 28px rgba(134,112,112,0.35)`,marginBottom:'12px'
+  }},'Continue →');
+  const pNote=p({style:{textAlign:'center',fontSize:'11px',color:C.rosep,fontFamily:S.sans}});
+  pNote.innerHTML='By continuing you agree to our <u>Privacy Policy</u>';
+  form.append(cBtn,pNote);
+  s.appendChild(form);
+  s.style.paddingBottom='32px';
+  return s;
+}
+
+// ── ONBOARDING ──
+function onboarding(){
+  const s=div({class:'screen',style:{background:C.white,padding:'56px 28px 40px',overflowY:'auto'}});
+
+  // progress
+  const prog=div({style:{display:'flex',gap:'6px',marginBottom:'40px'}});
+  [1,2,3].forEach(i=>{
+    prog.appendChild(div({style:{flex:'1',height:'3px',borderRadius:'2px',background:i===1?C.rose:`rgba(213,180,180,0.3)`}}));
+  });
+  s.appendChild(prog);
+
+  s.appendChild(h(2,{style:{fontFamily:S.serif,fontSize:'34px',fontWeight:'500',color:C.rosedp,letterSpacing:'-.01em',fontStyle:'italic',lineHeight:'1.2',marginBottom:'8px'}},'What brings\nyou here?'));
+  s.appendChild(p({style:{fontSize:'13px',color:C.rosem,fontFamily:S.sans,marginBottom:'32px',lineHeight:'1.6'}},"I'll shape how I think around your main goal."));
+
+  let sel='';
+  const goals=[
+    {id:'reflect',icon:'◎',label:'Self-reflection',sub:'Process thoughts, understand myself'},
+    {id:'decide',icon:'⊙',label:'Better decisions',sub:'Think through choices with clarity'},
+    {id:'create',icon:'✦',label:'Creative writing',sub:'Turn raw ideas into polished content'},
+    {id:'journal',icon:'◇',label:'Daily journaling',sub:'Build a consistent reflection habit'},
+  ];
+
+  const cards=goals.map(g=>{
+    const card=btn({style:{
+      width:'100%',padding:'18px 20px',
+      borderRadius:'20px',
+      border:`1.5px solid rgba(228,208,208,0.6)`,
+      background:C.white,textAlign:'left',
+      display:'flex',alignItems:'center',gap:'16px',
+      marginBottom:'10px',transition:'all .18s',
+      boxShadow:'0 2px 8px rgba(134,112,112,0.05)'
+    }});
+    const ico=div({style:{width:'44px',height:'44px',borderRadius:'14px',background:C.blush,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',color:C.rosem,flexShrink:'0',transition:'all .18s'}},g.icon);
+    const txt=div({style:{flex:'1'}});
+    txt.appendChild(div({style:{fontSize:'15px',fontWeight:'600',color:C.rosedp,fontFamily:S.sans,marginBottom:'3px'}},g.label));
+    txt.appendChild(div({style:{fontSize:'12px',color:C.rosem,fontFamily:S.sans,lineHeight:'1.4'}},g.sub));
+    card.append(ico,txt);
+    const tick=div({style:{width:'20px',height:'20px',borderRadius:'50%',border:`2px solid rgba(213,180,180,0.4)`,flexShrink:'0',transition:'all .18s'}});
+    card.appendChild(tick);
+    card.addEventListener('click',()=>{
+      sel=g.id;
+      cards.forEach(c=>{
+        c.style.border=`1.5px solid rgba(228,208,208,0.6)`;
+        c.style.background=C.white;
+        c.style.boxShadow='0 2px 8px rgba(134,112,112,0.05)';
+        c.querySelector('div').style.background=C.blush;
+        c.querySelector('div').style.color=C.rosem;
+        c.lastChild.style.border=`2px solid rgba(213,180,180,0.4)`;
+        c.lastChild.style.background='transparent';
+      });
+      card.style.border=`1.5px solid ${C.rose}`;
+      card.style.background=`rgba(134,112,112,0.04)`;
+      card.style.boxShadow=`0 4px 20px rgba(134,112,112,0.12)`;
+      ico.style.background=C.rose;ico.style.color=C.white;
+      tick.style.background=C.rose;tick.style.border=`2px solid ${C.rose}`;
+    });
+    return card;
+  });
+  cards.forEach(c=>s.appendChild(c));
+
+  s.appendChild(btn({onClick:()=>{if(sel){state.user.goal=sel;go('persona');}},style:{
+    width:'100%',padding:'16px',borderRadius:'100px',border:'none',marginTop:'8px',
+    background:`linear-gradient(135deg,${C.rose},${C.rosed})`,
+    color:C.white,fontSize:'15px',fontFamily:S.sans,fontWeight:'500',
+    boxShadow:`0 8px 28px rgba(134,112,112,0.35)`
+  }},'Next →'));
+  return s;
+}
+
+// ── PERSONA ──
+function persona(){
+  const s=div({class:'screen',style:{background:C.white,padding:'56px 28px 40px',overflowY:'auto'}});
+
+  const prog=div({style:{display:'flex',gap:'6px',marginBottom:'40px'}});
+  [1,2,3].forEach(i=>{prog.appendChild(div({style:{flex:'1',height:'3px',borderRadius:'2px',background:i<=2?C.rose:`rgba(213,180,180,0.3)`}}));});
+  s.appendChild(prog);
+
+  s.appendChild(h(2,{style:{fontFamily:S.serif,fontSize:'34px',fontWeight:'500',color:C.rosedp,fontStyle:'italic',lineHeight:'1.2',marginBottom:'8px'}},'Shape\nmy voice'));
+  s.appendChild(p({style:{fontSize:'13px',color:C.rosem,fontFamily:S.sans,marginBottom:'28px',lineHeight:'1.6'}},'How should I sound when I talk to you?'));
+
+  let tone='';const selTopics=[];
+  const tones=[{id:'warm',l:'Warm & gentle'},{id:'direct',l:'Direct & honest'},{id:'curious',l:'Curious & deep'},{id:'calm',l:'Calm & grounding'}];
+  const toneGrid=div({style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'28px'}});
+  const toneBtns=tones.map(t=>{
+    const b=btn({style:{
+      padding:'14px',borderRadius:'16px',
+      border:`1.5px solid rgba(228,208,208,0.6)`,
+      background:C.white,color:C.rosem,
+      fontSize:'13px',fontFamily:S.sans,fontWeight:'500',
+      transition:'all .15s'
+    }},t.l);
+    b.addEventListener('click',()=>{
+      tone=t.id;
+      toneBtns.forEach(x=>{x.style.border=`1.5px solid rgba(228,208,208,0.6)`;x.style.background=C.white;x.style.color=C.rosem;});
+      b.style.border=`1.5px solid ${C.rose}`;b.style.background=`rgba(134,112,112,0.06)`;b.style.color=C.rosedp;
+    });
+    return b;
+  });
+  toneBtns.forEach(b=>toneGrid.appendChild(b));
+  s.appendChild(toneGrid);
+
+  s.appendChild(p({style:{fontSize:'13px',fontWeight:'600',color:C.rosedp,fontFamily:S.sans,marginBottom:'14px'}},'Topics you\'d like to explore'));
+  const tagWrap=div({style:{display:'flex',flexWrap:'wrap',gap:'8px',marginBottom:'36px'}});
+  ['Work & career','Relationships','Creativity','Health','Purpose','Decisions','Emotions','Ideas'].forEach(t=>{
+    const tag=btn({style:{
+      padding:'9px 16px',borderRadius:'100px',
+      border:`1.5px solid rgba(228,208,208,0.6)`,
+      background:C.white,color:C.rosem,
+      fontSize:'12px',fontFamily:S.sans,transition:'all .15s'
+    }},t);
+    tag.addEventListener('click',()=>{
+      if(selTopics.includes(t)){
+        selTopics.splice(selTopics.indexOf(t),1);
+        tag.style.border=`1.5px solid rgba(228,208,208,0.6)`;tag.style.background=C.white;tag.style.color=C.rosem;
+      } else {
+        selTopics.push(t);
+        tag.style.border=`1.5px solid ${C.rose}`;tag.style.background=`rgba(134,112,112,0.08)`;tag.style.color=C.rosedp;
+      }
+    });
+    tagWrap.appendChild(tag);
+  });
+  s.appendChild(tagWrap);
+
+  s.appendChild(btn({onClick:async()=>{
+    if(!tone)return;
+    state.user.tone=tone;state.user.topics=[...selTopics];
+    await ss('aevi_u',state.user);go('home');
+  },style:{
+    width:'100%',padding:'16px',borderRadius:'100px',border:'none',
+    background:`linear-gradient(135deg,${C.rose},${C.rosed})`,
+    color:C.white,fontSize:'15px',fontFamily:S.sans,fontWeight:'500',
+    boxShadow:`0 8px 28px rgba(134,112,112,0.35)`
+  }},'Meet Aevi →'));
+  return s;
+}
+
+// ── HOME ──
+function home(){
+  const s=div({class:'screen',style:{background:C.white}});
+  const hour=new Date().getHours();
+  const greeting=hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
+
+  // header — no box, just clean white
+  const header=div({style:{padding:'52px 24px 20px',background:C.white,borderBottom:`1px solid rgba(228,208,208,0.4)`}});
+  const hrow=div({style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'0'}});
+  const hleft=div({});
+  hleft.appendChild(p({style:{fontSize:'12px',color:C.rosep,fontFamily:S.sans,letterSpacing:'.04em',marginBottom:'2px'}},greeting));
+  hleft.appendChild(h(2,{style:{fontFamily:S.serif,fontSize:'30px',fontWeight:'500',color:C.rosedp,fontStyle:'italic',letterSpacing:'-.01em'}},(state.user.name||'Friend')+' ✦'));
+
+  const hright=div({style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'6px'}});
+  hright.appendChild(btn({onClick:()=>go('upgrade'),style:{padding:'6px 14px',borderRadius:'100px',border:`1px solid rgba(213,180,180,0.5)`,background:'transparent',color:C.rose,fontSize:'11px',fontFamily:S.sans}},'✦ Free'));
+  const signOutBtn = btn({onClick:async()=>{
+    // clear all data and go to welcome
+    await ss('aevi_u',null);await ss('aevi_m',null);await ss('aevi_msgs',null);
+    state.user={name:'',goal:'',tone:'',topics:[]};state.mem=[];state.msgs=[];
+    go('welcome');
+  },style:{background:'none',border:'none',fontSize:'11px',color:C.rosep,fontFamily:S.sans,textDecoration:'underline',cursor:'pointer',padding:'4px 0'}},'Sign out');
+  hright.appendChild(signOutBtn);
+  hrow.append(hleft,hright);
+  header.appendChild(hrow);
+  s.appendChild(header);
+
+  const body=div({style:{flex:'1',overflowY:'auto',padding:'20px 24px 110px'}});
+
+  // memory recap — elegant card with left accent
+  if(state.mem.length>0){
+    const mc=div({style:{
+      background:C.off,borderRadius:'20px',
+      padding:'18px 20px',marginBottom:'20px',
+      position:'relative',overflow:'hidden'
+    }});
+    const accent=div({style:{position:'absolute',top:'0',left:'0',width:'3px',height:'100%',background:`linear-gradient(180deg,${C.rose},${C.pink2})`}});
+    mc.appendChild(accent);
+    mc.appendChild(p({style:{fontSize:'10px',color:C.rose,fontFamily:S.sans,letterSpacing:'.08em',textTransform:'uppercase',marginBottom:'8px'}},'✦ Aevi remembers'));
+    mc.appendChild(p({style:{fontFamily:S.serif,fontSize:'16px',fontStyle:'italic',color:C.rosedp,lineHeight:'1.6'}},'"'+state.mem[state.mem.length-1].value+'"'));
+    body.appendChild(mc);
+  }
+
+  // section label
+  body.appendChild(p({style:{fontSize:'11px',color:C.rosep,fontFamily:S.sans,letterSpacing:'.06em',textTransform:'uppercase',marginBottom:'14px'}},'Start here'));
+
+  // prompt cards — varied sizes and feels
+  const prompts=[
+    {q:"What's weighing on your mind?",size:'large'},
+    {q:"Any decisions to think through?",size:'small'},
+    {q:"Something you noticed today?",size:'small'},
+    {q:"A feeling you want to explore?",size:'large'},
+  ];
+  const pgrid=div({style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'24px'}});
+  prompts.forEach(({q,size})=>{
+    const isLg=size==='large';
+    const pc=btn({onClick:()=>go('chat'),style:{
+      gridColumn:isLg?'span 2':'span 1',
+      padding:isLg?'20px':'16px 14px',
+      borderRadius:'18px',
+      border:`1px solid rgba(228,208,208,0.6)`,
+      background:C.white,textAlign:'left',
+      boxShadow:'0 2px 12px rgba(134,112,112,0.07)',
+      transition:'all .15s',fontFamily:S.sans
+    }});
+    pc.appendChild(p({style:{fontSize:isLg?'15px':'13px',color:C.rosedp,lineHeight:'1.4',marginBottom:'6px'}},q));
+    pc.appendChild(span({style:{fontSize:'11px',color:C.rosep}},'→ Explore'));
+    pc.addEventListener('mouseover',()=>{pc.style.boxShadow='0 4px 20px rgba(134,112,112,0.14)';pc.style.transform='translateY(-1px)';});
+    pc.addEventListener('mouseout',()=>{pc.style.boxShadow='0 2px 12px rgba(134,112,112,0.07)';pc.style.transform='';});
+    pgrid.appendChild(pc);
+  });
+  body.appendChild(pgrid);
+
+  // stats row — clean numbers
+  const stats=div({style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'20px'}});
+  [{l:'Memories',v:state.mem.length},{l:'Days active',v:1}].forEach(stat=>{
+    const sc=div({style:{background:C.off,borderRadius:'16px',padding:'16px'}});
+    sc.appendChild(p({style:{fontFamily:S.serif,fontSize:'36px',fontWeight:'500',color:C.rosedp,lineHeight:'1'}},String(stat.v)));
+    sc.appendChild(p({style:{fontSize:'11px',color:C.rosep,fontFamily:S.sans,marginTop:'4px'}},stat.l));
+    stats.appendChild(sc);
+  });
+  body.appendChild(stats);
+
+  // streak
+  const streak=div({style:{background:C.off,borderRadius:'20px',padding:'18px 20px'}});
+  streak.appendChild(p({style:{fontSize:'12px',fontWeight:'600',color:C.rosedp,fontFamily:S.sans,marginBottom:'14px'}},'◎ Reflection streak'));
+  const days=div({style:{display:'flex',gap:'6px'}});
+  const today=new Date().getDay();
+  ['M','T','W','T','F','S','S'].forEach((d,i)=>{
+    const isToday=i===(today===0?6:today-1);
+    const dc=div({style:{flex:'1',display:'flex',flexDirection:'column',alignItems:'center',gap:'5px'}});
+    dc.appendChild(div({style:{width:'100%',aspectRatio:'1',borderRadius:'10px',background:isToday?C.rose:`rgba(213,180,180,0.25)`,boxShadow:isToday?`0 2px 8px rgba(134,112,112,0.3)`:'none',transition:'all .2s'}}));
+    dc.appendChild(span({style:{fontSize:'9px',color:isToday?C.rose:C.rosep,fontFamily:S.sans,fontWeight:isToday?'600':'400'}},d));
+    days.appendChild(dc);
+  });
+  streak.appendChild(days);
+  body.appendChild(streak);
+
+  s.append(body,nav('home'));
+  return s;
+}
+
+// ── CHAT ──
+function chat(){
+  const s=div({class:'screen',style:{background:C.white,display:'flex',flexDirection:'column'}});
+
+  const header=div({style:{
+    padding:'50px 20px 14px',
+    background:'rgba(255,255,255,0.95)',
+    backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',
+    borderBottom:`1px solid rgba(228,208,208,0.4)`,flexShrink:'0'
+  }});
+  const hr=div({style:{display:'flex',alignItems:'center',gap:'12px'}});
+  hr.appendChild(btn({onClick:()=>go('home','left'),style:{background:'none',border:'none',color:C.rosem,fontSize:'20px',padding:'0',lineHeight:'1'}},'←'));
+  const av=div({style:{width:'38px',height:'38px',borderRadius:'50%',background:`conic-gradient(from 180deg, ${C.pink2}, ${C.rose})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',color:C.white,fontWeight:'700',flexShrink:'0',boxShadow:`0 4px 12px rgba(134,112,112,0.3)`}},'✦');
+  const ht=div({style:{flex:'1'}});
+  ht.appendChild(div({style:{fontSize:'16px',fontWeight:'600',color:C.rosedp,fontFamily:S.sans,letterSpacing:'-.01em'}},'Aevi'));
+  ht.appendChild(div({style:{fontSize:'11px',color:C.rosem,fontFamily:S.serif,fontStyle:'italic'}},'your second mind'));
+  hr.append(av,ht,mem_tag());
+  header.appendChild(hr);
+  s.appendChild(header);
+
+  const msgsArea=div({style:{flex:'1',overflowY:'auto',padding:'20px 16px 8px'}});
+
+  function renderMsgs(){
+    msgsArea.innerHTML='';
+    if(state.msgs.length===0){
+      const empty=div({style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'55vh',padding:'24px',textAlign:'center'}});
+
+      // big orb
+      const ew=div({style:{position:'relative',width:'80px',height:'80px',margin:'0 auto 24px'}});
+      ew.appendChild(div({style:{position:'absolute',inset:'-10px',borderRadius:'50%',border:'1px solid rgba(213,180,180,0.25)',animation:'breathe 3s ease-in-out infinite'}}));
+      ew.appendChild(div({style:{width:'100%',height:'100%',borderRadius:'50%',background:`conic-gradient(from 180deg, ${C.pink2}, ${C.rose})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',color:C.white,boxShadow:`0 8px 32px rgba(134,112,112,0.3)`,animation:'float 5s ease-in-out infinite'}},'✦'));
+      empty.appendChild(ew);
+
+      empty.appendChild(h(3,{style:{fontFamily:S.serif,fontSize:'28px',fontWeight:'500',color:C.rosedp,fontStyle:'italic',marginBottom:'10px'}},"What's on your mind?"));
+      empty.appendChild(p({style:{fontSize:'13px',color:C.rosem,fontFamily:S.sans,lineHeight:'1.7',marginBottom:'28px',maxWidth:'260px'}},'A thought, a question, anything you\'re sitting with — bring it here.'));
+
+      const pWrap=div({style:{display:'flex',flexDirection:'column',gap:'8px',width:'100%',maxWidth:'280px'}});
+      ["I've been thinking about...","I need to decide...","Something's bothering me...","I had an idea today..."].forEach(pr=>{
+        pWrap.appendChild(btn({onClick:()=>{ta.value=pr;ta.dispatchEvent(new Event('input'));ta.focus();},style:{
+          background:C.off,border:`1px solid rgba(228,208,208,0.5)`,
+          color:C.rosed,borderRadius:'14px',padding:'11px 16px',
+          fontSize:'13px',fontFamily:S.sans,textAlign:'left',
+          boxShadow:'0 1px 6px rgba(134,112,112,0.06)',transition:'all .15s'
+        }},pr));
+      });
+      empty.appendChild(pWrap);
+      msgsArea.appendChild(empty);
+    } else {
+      state.msgs.forEach((msg,idx)=>{
+        const wrap=div({style:{
+          display:'flex',flexDirection:msg.role==='user'?'row-reverse':'row',
+          gap:'8px',alignItems:'flex-end',marginBottom:'12px',
+          animation:`slideUp .25s ease forwards`,animationDelay:`${Math.min(idx,3)*0.05}s`,opacity:'0'
+        }});
+        if(msg.role==='assistant'){
+          wrap.appendChild(div({style:{width:'28px',height:'28px',borderRadius:'50%',background:`conic-gradient(from 180deg, ${C.pink2}, ${C.rose})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px',color:C.white,fontWeight:'700',flexShrink:'0',boxShadow:`0 2px 8px rgba(134,112,112,0.25)`}},'✦'));
+        }
+        const inner=div({style:{maxWidth:'78%'}});
+        inner.appendChild(div({style:{
+          background:msg.role==='user'?`linear-gradient(135deg,${C.rose},${C.rosed})`:C.off,
+          border:msg.role==='user'?'none':`1px solid rgba(228,208,208,0.5)`,
+          borderRadius:msg.role==='user'?'20px 20px 4px 20px':'20px 20px 20px 4px',
+          padding:'12px 16px',
+          color:msg.role==='user'?C.white:C.rosedp,
+          fontSize:'14px',lineHeight:'1.75',whiteSpace:'pre-wrap',
+          fontFamily:S.sans,
+          boxShadow:msg.role==='user'?`0 4px 16px rgba(134,112,112,0.3)`:`0 2px 8px rgba(134,112,112,0.07)`
+        }},msg.content));
+        inner.appendChild(p({style:{fontSize:'10px',color:C.rosep,marginTop:'4px',textAlign:msg.role==='user'?'right':'left',fontFamily:S.sans,fontStyle:'italic'}},new Date(msg.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})));
+        wrap.appendChild(inner);
+        msgsArea.appendChild(wrap);
+      });
+
+      if(state.loading){
+        const wrap=div({style:{display:'flex',gap:'8px',alignItems:'flex-end',marginBottom:'12px'}});
+        wrap.appendChild(div({style:{width:'28px',height:'28px',borderRadius:'50%',background:`conic-gradient(from 180deg, ${C.pink2}, ${C.rose})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'10px',color:C.white,flexShrink:'0'}},'✦'));
+        const dots=div({style:{background:C.off,border:`1px solid rgba(228,208,208,0.5)`,borderRadius:'20px 20px 20px 4px',padding:'12px 16px',display:'flex',gap:'5px'}});
+        [0,1,2].forEach(i=>{const d=div({style:{width:'7px',height:'7px',borderRadius:'50%',background:C.rose,animation:'dot 1.2s ease-in-out infinite',animationDelay:i*0.2+'s'}});dots.appendChild(d);});
+        wrap.appendChild(dots);
+        msgsArea.appendChild(wrap);
+      }
+      setTimeout(()=>msgsArea.lastElementChild?.scrollIntoView({behavior:'smooth'}),50);
+    }
+  }
+
+  const style=document.createElement('style');
+  style.textContent=`@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`;
+  document.head.appendChild(style);
+
+  renderMsgs();
+  s.appendChild(msgsArea);
+
+  // input bar
+  const inputBar=div({style:{
+    padding:'10px 16px 30px',
+    background:'rgba(255,255,255,0.95)',
+    backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',
+    borderTop:`1px solid rgba(228,208,208,0.4)`,flexShrink:'0'
+  }});
+  const inputWrap=div({style:{
+    display:'flex',gap:'8px',alignItems:'flex-end',
+    background:C.off,border:`1.5px solid rgba(228,208,208,0.5)`,
+    borderRadius:'24px',padding:'10px 10px 10px 18px',
+    transition:'border-color .2s, box-shadow .2s'
+  }});
+  inputWrap.addEventListener('focusin',()=>{inputWrap.style.borderColor=C.rose;inputWrap.style.boxShadow=`0 0 0 3px rgba(134,112,112,0.08)`;});
+  inputWrap.addEventListener('focusout',()=>{inputWrap.style.borderColor='rgba(228,208,208,0.5)';inputWrap.style.boxShadow='none';});
+
+  const ta=el('textarea',{placeholder:'A thought, a question, anything...',rows:'1',style:{
+    flex:'1',border:'none',background:'transparent',color:C.rosedp,
+    fontSize:'14px',lineHeight:'1.6',maxHeight:'120px',minHeight:'24px',
+    paddingTop:'2px',resize:'none',fontFamily:S.sans
+  }});
+  ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,120)+'px';sendB.style.opacity=ta.value.trim()&&!state.loading?'1':'.4';});
+  ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSend();}});
+
+  const sendB=btn({style:{
+    width:'38px',height:'38px',borderRadius:'50%',border:'none',flexShrink:'0',
+    background:`linear-gradient(135deg,${C.rose},${C.rosed})`,
+    color:C.white,fontSize:'16px',display:'flex',alignItems:'center',justifyContent:'center',
+    boxShadow:`0 2px 10px rgba(134,112,112,0.35)`,
+    opacity:'.4',transition:'opacity .2s, transform .15s'
+  }},'↑');
+  sendB.addEventListener('click',doSend);
+  sendB.addEventListener('mouseover',()=>{if(ta.value.trim())sendB.style.transform='scale(1.08)';});
+  sendB.addEventListener('mouseout',()=>{sendB.style.transform='';});
+
+  inputWrap.append(ta,sendB);
+  inputBar.appendChild(inputWrap);
+  inputBar.appendChild(p({style:{textAlign:'center',fontSize:'10px',color:C.rosep,marginTop:'8px',fontFamily:S.sans,letterSpacing:'.04em'}},'✦  Private · Remembered · Yours'));
+  s.appendChild(inputBar);
+
+  async function doSend(){
+    const text=ta.value.trim();if(!text||state.loading)return;
+    ta.value='';ta.style.height='24px';sendB.style.opacity='.4';
+    const userMsg={id:'u'+Date.now(),role:'user',content:text,ts:Date.now()};
+    state.msgs.push(userMsg);await ss('aevi_msgs',state.msgs.slice(-60));
+    state.loading=true;renderMsgs();
+
+    try{
+      // Get auth token if available
+      const token=localStorage.getItem('aevi_token');
+
+      const res=await fetch('https://aevi-backend.vercel.app/api/chat',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          ...(token?{'Authorization':'Bearer '+token}:{})
+        },
+        body:JSON.stringify({
+          messages:state.msgs.map(m=>({role:m.role,content:m.content}))
+        })
+      });
+
+      // Handle daily limit reached
+      if(res.status===429){
+        const errData=await res.json();
+        state.msgs.push({id:'l'+Date.now(),role:'assistant',ts:Date.now(),
+          content:'You\'ve reached your daily limit of 5 messages on the free plan.\n\nUpgrade to Aevi Plus for unlimited conversations ✦'
+        });
+        await ss('aevi_msgs',state.msgs.slice(-60));
+        state.loading=false;renderMsgs();
+        setTimeout(()=>go('upgrade'),2500);
+        return;
+      }
+
+      if(!res.ok)throw new Error('HTTP '+res.status);
+      const data=await res.json();
+      const clean=data.content;if(!clean)throw new Error('Empty response');
+
+      // Update local memory if backend saved one
+      if(data.memory_saved){
+        const memRes=await fetch('https://aevi-backend.vercel.app/api/memories',{
+          headers:{...(token?{'Authorization':'Bearer '+token}:{})}
+        });
+        if(memRes.ok){const md=await memRes.json();if(md.memories){state.mem=md.memories;await ss('aevi_m',state.mem);}}
+      }
+
+      state.msgs.push({id:'a'+Date.now(),role:'assistant',content:clean,ts:Date.now()});
+      await ss('aevi_msgs',state.msgs.slice(-60));
+    }catch(e){
+      state.msgs.push({id:'e'+Date.now(),role:'assistant',content:'Error: '+e.message,ts:Date.now()});
+    }
+    state.loading=false;renderMsgs();
+  }
+  return s;
+}
+
+// ── INSIGHTS ──
+function insights(){
+  const s=div({class:'screen',style:{background:C.white}});
+  const header=div({style:{padding:'52px 24px 20px',background:C.white,borderBottom:`1px solid rgba(228,208,208,0.4)`}});
+  header.appendChild(h(2,{style:{fontFamily:S.serif,fontSize:'34px',fontWeight:'500',color:C.rosedp,fontStyle:'italic',letterSpacing:'-.01em'}},'Insights'));
+  header.appendChild(p({style:{fontSize:'12px',color:C.rosem,fontFamily:S.sans,marginTop:'4px'}},'Patterns from your reflections'));
+  s.appendChild(header);
+
+  const body=div({style:{flex:'1',overflowY:'auto',padding:'20px 24px 110px'}});
+
+  const cards=[
+    {icon:'◇',title:'Recurring themes',desc:state.mem.length>=2?`You often return to "${state.mem.slice(-1)[0].key.replace(/_/g,' ')}".`:'Keep journaling — patterns emerge after a few sessions.'},
+    {icon:'◎',title:'Reflection streak',desc:'Consistency is how real clarity builds. You\'re doing great.'},
+    {icon:'✦',title:'Memory growth',desc:state.mem.length>0?`Aevi has ${state.mem.length} ${state.mem.length===1?'memory':'memories'} and is getting sharper.`:'Start a conversation to build your first memory.'},
+  ];
+
+  cards.forEach((c,i)=>{
+    const card=div({style:{
+      display:'flex',gap:'14px',alignItems:'flex-start',
+      padding:'18px 0',
+      borderBottom:i<cards.length-1?`1px solid rgba(228,208,208,0.35)`:'none',
+      animation:`slideUp .3s ease forwards`,animationDelay:`${i*0.1}s`,opacity:'0'
+    }});
+    card.appendChild(div({style:{
+      width:'40px',height:'40px',borderRadius:'14px',
+      background:C.blush,display:'flex',alignItems:'center',
+      justifyContent:'center',fontSize:'18px',color:C.rose,flexShrink:'0'
+    }},c.icon));
+    const txt=div({});
+    txt.appendChild(p({style:{fontSize:'15px',fontWeight:'600',color:C.rosedp,fontFamily:S.sans,marginBottom:'5px'}},c.title));
+    txt.appendChild(p({style:{fontSize:'13px',color:C.rosem,fontFamily:S.sans,lineHeight:'1.65'}},c.desc));
+    card.appendChild(txt);
+    body.appendChild(card);
+  });
+
+  const style=document.createElement('style');
+  style.textContent=`@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`;
+  document.head.appendChild(style);
+
+  body.appendChild(p({style:{fontSize:'11px',color:C.rosedp,fontWeight:'600',fontFamily:S.sans,letterSpacing:'.06em',textTransform:'uppercase',margin:'24px 0 14px'}},'Memory bank'));
+
+  if(state.mem.length===0){
+    const empty=div({style:{background:C.off,borderRadius:'20px',padding:'28px',textAlign:'center'}});
+    empty.appendChild(p({style:{fontSize:'13px',color:C.rosem,fontFamily:S.serif,fontStyle:'italic',lineHeight:'1.7',marginBottom:'14px'}},'Nothing saved yet. Have a conversation — I\'ll quietly remember what matters.'));
+    empty.appendChild(btn({onClick:()=>go('chat'),style:{padding:'10px 24px',borderRadius:'100px',border:`1px solid rgba(213,180,180,0.5)`,background:'transparent',color:C.rose,fontSize:'12px',fontFamily:S.sans}},'Start chatting →'));
+    body.appendChild(empty);
+  } else {
+    state.mem.forEach(m=>{
+      const mc=div({style:{background:C.off,borderRadius:'16px',padding:'14px 18px',marginBottom:'8px',position:'relative',overflow:'hidden'}});
+      mc.appendChild(div({style:{position:'absolute',top:'0',left:'0',width:'3px',height:'100%',background:C.pink2}}));
+      mc.appendChild(p({style:{fontSize:'10px',color:C.rose,fontFamily:S.sans,letterSpacing:'.07em',textTransform:'uppercase',marginBottom:'4px'}},m.key.replace(/_/g,' ')));
+      mc.appendChild(p({style:{fontSize:'13px',color:C.rosedp,fontFamily:S.sans,lineHeight:'1.6'}},m.value));
+      body.appendChild(mc);
+    });
+  }
+
+  s.append(body,nav('insights'));
+  return s;
+}
+
+// ── UPGRADE ──
+function upgrade(){
+  const s=div({class:'screen',style:{background:C.white}});
+  const header=div({style:{padding:'52px 24px 20px',background:C.white,borderBottom:`1px solid rgba(228,208,208,0.4)`}});
+  header.appendChild(btn({onClick:()=>go('home','left'),style:{background:'none',border:'none',color:C.rosem,fontSize:'20px',marginBottom:'16px',display:'block',padding:'0'}},'←'));
+  header.appendChild(h(2,{style:{fontFamily:S.serif,fontSize:'34px',fontWeight:'500',color:C.rosedp,fontStyle:'italic'}},'Upgrade Aevi'));
+  header.appendChild(p({style:{fontSize:'13px',color:C.rosem,fontFamily:S.sans,marginTop:'4px'}},'Unlock your full experience'));
+  s.appendChild(header);
+
+  const body=div({style:{flex:'1',overflowY:'auto',padding:'20px 24px 50px'}});
+
+  let selPlan='plus';
+  const plans=[
+    {id:'free',name:'Free',price:'€0',period:'forever',features:['Basic chat & journal','10 memories','5 msgs / day','Core insights']},
+    {id:'plus',name:'Plus',price:'€9',period:'/month',features:['Unlimited chat','100 memories','Tone control','Weekly summaries','Export notes'],hot:true},
+    {id:'pro',name:'Pro',price:'€19',period:'/month',features:['Everything in Plus','Unlimited memory','Advanced insights','Content rewriting','Priority AI']},
+  ];
+
+  const planCards={};
+  plans.forEach(plan=>{
+    const pc=btn({style:{
+      width:'100%',padding:'20px',borderRadius:'22px',
+      border:`1.5px solid ${plan.id==='plus'?C.rose:'rgba(228,208,208,0.5)'}`,
+      background:plan.id==='plus'?`rgba(134,112,112,0.04)`:C.white,
+      textAlign:'left',marginBottom:'12px',position:'relative',
+      transition:'all .15s',
+      boxShadow:plan.id==='plus'?`0 4px 24px rgba(134,112,112,0.15)`:'0 2px 8px rgba(134,112,112,0.05)'
+    }});
+    if(plan.hot){
+      const badge=div({style:{
+        position:'absolute',top:'-11px',right:'18px',
+        background:`linear-gradient(135deg,${C.rose},${C.rosed})`,
+        color:C.white,fontSize:'10px',padding:'4px 14px',
+        borderRadius:'100px',fontFamily:S.sans,fontWeight:'500',
+        boxShadow:`0 2px 8px rgba(134,112,112,0.35)`
+      }},'Most popular');
+      pc.appendChild(badge);
+    }
+    const top=div({style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'14px'}});
+    top.appendChild(span({style:{fontFamily:S.serif,fontSize:'22px',fontWeight:'500',color:C.rosedp,fontStyle:'italic'}},plan.name));
+    const pr=div({style:{display:'flex',alignItems:'baseline',gap:'2px'}});
+    pr.appendChild(span({style:{fontFamily:S.serif,fontSize:'28px',fontWeight:'500',color:C.rose}},plan.price));
+    pr.appendChild(span({style:{fontSize:'12px',color:C.rosem,fontFamily:S.sans}},plan.period));
+    top.appendChild(pr);pc.appendChild(top);
+    plan.features.forEach(f=>{
+      const fr=div({style:{display:'flex',alignItems:'center',gap:'8px',fontSize:'13px',color:C.rosed,fontFamily:S.sans,marginBottom:'7px'}});
+      fr.appendChild(div({style:{width:'6px',height:'6px',borderRadius:'50%',background:C.rose,flexShrink:'0'}}));
+      fr.appendChild(span({},f));
+      pc.appendChild(fr);
+    });
+    pc.addEventListener('click',()=>{
+      selPlan=plan.id;
+      Object.values(planCards).forEach(c=>{c.style.border=`1.5px solid rgba(228,208,208,0.5)`;c.style.background=C.white;c.style.boxShadow='0 2px 8px rgba(134,112,112,0.05)';});
+      pc.style.border=`1.5px solid ${C.rose}`;pc.style.background=`rgba(134,112,112,0.04)`;pc.style.boxShadow=`0 4px 24px rgba(134,112,112,0.15)`;
+      ctaBtn.textContent=plan.id==='free'?'Continue with Free':`Start Aevi ${plan.name} — ${plan.price}/mo`;
+    });
+    planCards[plan.id]=pc;body.appendChild(pc);
+  });
+
+  const ctaBtn=btn({style:{
+    width:'100%',padding:'17px',borderRadius:'100px',border:'none',
+    background:`linear-gradient(135deg,${C.rose},${C.rosed})`,
+    color:C.white,fontSize:'15px',fontFamily:S.sans,fontWeight:'500',
+    boxShadow:`0 8px 28px rgba(134,112,112,0.35)`,marginBottom:'12px',
+    letterSpacing:'.01em'
+  }},'Start Aevi Plus — €9/mo');
+  body.appendChild(ctaBtn);
+  body.appendChild(p({style:{textAlign:'center',fontSize:'11px',color:C.rosep,fontFamily:S.sans,letterSpacing:'.02em'}},'Cancel anytime · No commitment'));
+  s.appendChild(body);
+  return s;
+}
+
+init();
+</script>
+</body>
+</html>
