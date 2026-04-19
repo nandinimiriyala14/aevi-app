@@ -589,7 +589,7 @@ function chat(){
     try{
       const token=state.session?.access_token||localStorage.getItem('aevi_token');
       const res=await fetch(`${BACKEND}/api/chat`,{method:'POST',headers:{'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},body:JSON.stringify({messages:state.msgs.map(m=>({role:m.role,content:m.content}))})});
-      if(res.status===429){state.msgs.push({id:'l'+Date.now(),role:'assistant',ts:Date.now(),content:"You've reached your 5 message daily limit.\n\nUpgrade to Aevi Plus for unlimited conversations."});await save('av_msgs',state.msgs.slice(-60));state.loading=false;renderMsgs();setTimeout(()=>go('upgrade','sR'),2500);return;}
+      if(res.status===429){state.msgs.push({id:'l'+Date.now(),role:'assistant',ts:Date.now(),content:"You've reached your 10 message daily limit.\n\nUpgrade to Aevi Plus for unlimited conversations."});await save('av_msgs',state.msgs.slice(-60));state.loading=false;renderMsgs();setTimeout(()=>go('upgrade','sR'),2500);return;}
       if(!res.ok)throw new Error('HTTP '+res.status);
       const data=await res.json();
       if(data.memory_saved){const mr=await fetch(`${BACKEND}/api/memories`,{headers:{...(token?{'Authorization':'Bearer '+token}:{})}});if(mr.ok){const md=await mr.json();if(md.memories){state.mem=md.memories;await save('av_m',state.mem);}}}
