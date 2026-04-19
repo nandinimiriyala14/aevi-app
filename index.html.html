@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
 <title>Aevi</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;background:#E2DDD6;}
@@ -20,47 +21,62 @@ button{cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border:none;}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
 @keyframes breathe{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.8;transform:scale(1.06)}}
 @keyframes dotP{0%,100%{opacity:.2;transform:scale(.6)}50%{opacity:1;transform:scale(1)}}
-input::placeholder{color:#BABCBF;}
-textarea::placeholder{color:#BABCBF;}
+@keyframes spin{to{transform:rotate(360deg)}}
+input::placeholder,textarea::placeholder{color:#BABCBF;}
 ::-webkit-scrollbar{width:0;}
 </style>
 </head>
 <body><div id="app"></div>
 <script>
-/* ── PALETTE from Figma ── */
+/* ── SUPABASE ── */
+const SUPA_URL='https://safywvodxfioxppvnrug.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZnl3dm9keGZpb3hwcHZucnVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNTcxNTQsImV4cCI6MjA5MTkzMzE1NH0.e6O3WLeCzXzmbDsAtx6s1Iv0SidgNB5KV9GMHp7qD9I';
+const supa=supabase.createClient(SUPA_URL,SUPA_KEY);
+
+/* ── PALETTE ── */
 const C={
-  bg:'#EEEAE3',        // warm cream
-  card:'#FFFFFF',       // white cards
-  border:'#E8E4DC',     // card borders
-  dark:'#1C2B3A',       // deep navy — headings, buttons, orb
-  darkM:'rgba(28,43,58,0.55)', // muted dark
-  darkH:'rgba(28,43,58,0.35)', // hint dark
-  text:'#1C2B3A',
-  textS:'#4A5568',
-  textM:'#6B7280',
-  textH:'#9CA3AF',
-  green:'#4CAF80',
-  selected:'#1C2B3A',
+  bg:'#EEEAE3',card:'#FFFFFF',border:'#E8E4DC',
+  dark:'#1C2B3A',darkM:'rgba(28,43,58,0.55)',darkH:'rgba(28,43,58,0.35)',
+  text:'#1C2B3A',textS:'#4A5568',textM:'#6B7280',textH:'#9CA3AF',
+  green:'#4CAF80',err:'#E53E3E',
 };
 const SF="'Cormorant Garamond',Georgia,serif";
 const SS="'Plus Jakarta Sans',sans-serif";
 const BACKEND='https://aevi-backend.vercel.app';
-const ORDER=['welcome','signup','onboarding','persona','home','chat','insights','upgrade'];
+const ORDER=['welcome','login','signup','onboarding','persona','home','chat','insights','upgrade'];
 
 const state={
   screen:'welcome',
   user:{name:'',goal:'',tone:'',topics:[]},
-  msgs:[],mem:[],loading:false,
-  token:localStorage.getItem('aevi_token')||null,
+  msgs:[],mem:[],loading:false,authLoading:false,
+  session:null,
 };
 
 async function load(k){try{const r=await window.storage?.get(k);return r?JSON.parse(r.value):null}catch{return null}}
 async function save(k,v){try{await window.storage?.set(k,JSON.stringify(v))}catch{}}
 
 async function init(){
-  const[u,m,msgs]=await Promise.all([load('av_u'),load('av_m'),load('av_msgs')]);
-  if(u){state.user=u;state.screen='home';}
-  if(m)state.mem=m;if(msgs)state.msgs=msgs;
+  // Check existing Supabase session
+  const{data:{session}}=await supa.auth.getSession();
+  if(session){
+    state.session=session;
+    localStorage.setItem('aevi_token',session.access_token);
+    const[u,m,msgs]=await Promise.all([load('av_u'),load('av_m'),load('av_msgs')]);
+    if(u){state.user=u;state.screen='home';}
+    else{state.screen='onboarding';}
+    if(m)state.mem=m;if(msgs)state.msgs=msgs;
+  }
+  // Listen for auth changes
+  supa.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session){
+      state.session=session;
+      localStorage.setItem('aevi_token',session.access_token);
+    }
+    if(event==='SIGNED_OUT'){
+      state.session=null;
+      localStorage.removeItem('aevi_token');
+    }
+  });
   render('fI');
 }
 
@@ -71,13 +87,14 @@ function go(s,dir){
 
 function render(dir='sR'){
   const app=document.getElementById('app');
-  const screens={welcome,signup,onboarding,persona,home,chat,insights,upgrade};
+  const screens={welcome,login,signup,onboarding,persona,home,chat,insights,upgrade};
   const e=screens[state.screen]?.();
   if(!e)return;
   e.style.animation=`${dir} .24s cubic-bezier(.4,0,.2,1) forwards`;
   app.innerHTML='';app.appendChild(e);
 }
 
+/* ── HELPERS ── */
 function el(tag,a,...kids){
   const e=document.createElement(tag);
   for(const[k,v]of Object.entries(a||{})){
@@ -97,61 +114,81 @@ const s=(a,...c)=>el('span',a,...c);
 const inp=(a)=>el('input',a);
 
 /* ── SHARED COMPONENTS ── */
-
-// Back button — circle with arrow
-function backBtn(to,light=false){
+function backBtn(to){
   return b({onClick:()=>go(to,'sL'),style:{
     width:'40px',height:'40px',borderRadius:'50%',
-    background:light?'rgba(255,255,255,0.12)':C.card,
-    border:`1px solid ${light?'rgba(255,255,255,0.2)':C.border}`,
+    background:C.card,border:`1px solid ${C.border}`,
     display:'flex',alignItems:'center',justifyContent:'center',
-    fontSize:'16px',color:light?'rgba(255,255,255,0.8)':C.dark,
-    marginBottom:'32px',flexShrink:'0',
-    boxShadow:light?'none':'0 1px 3px rgba(0,0,0,0.06)',
+    fontSize:'16px',color:C.dark,marginBottom:'32px',
+    boxShadow:'0 1px 3px rgba(0,0,0,0.06)',
   }},'←');
 }
 
-// Primary button — from Figma: dark fill, rounded rect, arrow inside
-function primBtn(label,onClick){
+function primBtn(label,onClick,opts={}){
   const btn=b({onClick,style:{
     width:'100%',height:'56px',borderRadius:'16px',
-    background:C.dark,color:'#FFFFFF',
+    background:C.dark,color:'#FFF',
     fontSize:'15px',fontWeight:'600',fontFamily:SS,
     display:'flex',alignItems:'center',justifyContent:'center',gap:'12px',
     boxShadow:'0 4px 20px rgba(28,43,58,0.22)',
-    transition:'transform .13s,box-shadow .13s',
-    letterSpacing:'.01em',
+    transition:'transform .13s,box-shadow .13s,opacity .2s',
+    letterSpacing:'.01em',opacity:'1',
+    ...opts,
   }});
-  btn.appendChild(s({style:{flex:'1',textAlign:'center'}},label));
+  const lbl=s({style:{flex:'1',textAlign:'center'}},label);
+  btn.appendChild(lbl);
   btn.appendChild(d({style:{width:'32px',height:'32px',borderRadius:'10px',background:'rgba(255,255,255,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'15px',color:'rgba(255,255,255,0.8)',marginRight:'4px'}},'→'));
-  btn.addEventListener('mouseover',()=>{btn.style.transform='translateY(-1px)';btn.style.boxShadow='0 8px 28px rgba(28,43,58,0.28)';});
+  btn.addEventListener('mouseover',()=>{if(!btn.disabled){btn.style.transform='translateY(-1px)';btn.style.boxShadow='0 8px 28px rgba(28,43,58,0.28)';}});
   btn.addEventListener('mouseout',()=>{btn.style.transform='';btn.style.boxShadow='0 4px 20px rgba(28,43,58,0.22)';});
+  btn.setLoading=(on)=>{
+    btn.disabled=on;btn.style.opacity=on?'.7':'1';
+    lbl.textContent=on?'Please wait…':label;
+    btn.lastChild.textContent=on?'':'→';
+  };
   return btn;
 }
 
-// Ghost button — white bg, border
 function ghostBtn(label,onClick){
   return b({onClick,style:{
     width:'100%',height:'52px',borderRadius:'16px',
-    background:C.card,color:C.dark,
-    fontSize:'14px',fontWeight:'500',fontFamily:SS,
-    border:`1.5px solid ${C.border}`,
-    boxShadow:'0 1px 3px rgba(0,0,0,0.04)',
+    background:C.card,color:C.dark,fontSize:'14px',fontWeight:'500',fontFamily:SS,
+    border:`1.5px solid ${C.border}`,boxShadow:'0 1px 3px rgba(0,0,0,0.04)',
     transition:'all .14s',
   }},label);
 }
 
-// White card
-function card(style={}){
-  return d({style:{background:C.card,borderRadius:'16px',border:`1px solid ${C.border}`,boxShadow:'0 1px 4px rgba(0,0,0,0.04)',...style}});
+function inputField(lbl,type,ph,cb,opts={}){
+  const fw=d({style:{marginBottom:'18px'}});
+  if(lbl)fw.appendChild(p({style:{fontSize:'11px',color:C.textM,fontWeight:'600',letterSpacing:'.09em',textTransform:'uppercase',marginBottom:'8px',fontFamily:SS}},lbl));
+  const i=inp({type,placeholder:ph,...opts,style:{
+    width:'100%',padding:'16px 18px',borderRadius:'14px',
+    border:`1px solid ${C.border}`,background:C.card,
+    color:C.dark,fontSize:'15px',fontFamily:SS,
+    boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
+    transition:'border-color .18s,box-shadow .18s',
+    ...opts.style,
+  }});
+  i.addEventListener('focus',()=>{i.style.borderColor=C.dark;i.style.boxShadow=`0 0 0 3px rgba(28,43,58,0.08)`;});
+  i.addEventListener('blur',()=>{i.style.borderColor=C.border;i.style.boxShadow='0 1px 4px rgba(0,0,0,0.04)';});
+  i.addEventListener('input',e=>cb(e.target.value));
+  fw.appendChild(i);
+  const errEl=p({style:{fontSize:'12px',color:C.err,marginTop:'6px',fontFamily:SS,display:'none'}});
+  fw.appendChild(errEl);
+  fw._err=(msg)=>{errEl.textContent=msg;errEl.style.display=msg?'block':'none';i.style.borderColor=msg?C.err:C.border;};
+  return fw;
 }
 
-// Section label
-function sectionLbl(text){
-  return p({style:{fontSize:'11px',fontWeight:'600',color:C.textH,letterSpacing:'.08em',textTransform:'uppercase',marginBottom:'12px',fontFamily:SS}},text);
+function errorBanner(msg){
+  return d({style:{
+    background:'rgba(229,62,62,0.08)',border:'1px solid rgba(229,62,62,0.2)',
+    borderRadius:'12px',padding:'12px 16px',marginBottom:'18px',
+    display:'flex',alignItems:'center',gap:'10px',
+  }},
+  d({style:{fontSize:'16px',flexShrink:'0'}},'⚠'),
+  p({style:{fontSize:'13px',color:C.err,fontFamily:SS,lineHeight:'1.5'}},msg)
+  );
 }
 
-// Bottom nav — from Figma: white bg, icons + labels, active has bg highlight
 function navBar(active){
   const nav=d({style:{
     position:'fixed',bottom:'0',left:'50%',transform:'translateX(-50%)',
@@ -165,125 +202,187 @@ function navBar(active){
   ['home','chat','insights','upgrade'].forEach(sc=>{
     const isA=active===sc;
     const lbl=sc.charAt(0).toUpperCase()+sc.slice(1);
-    const btn=b({onClick:()=>go(sc,'fI'),style:{
+    nav.appendChild(b({onClick:()=>go(sc,'fI'),style:{
       flex:'1',display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',
       background:isA?'rgba(28,43,58,0.08)':'transparent',
       borderRadius:'12px',padding:'8px 4px',transition:'all .18s',
     }},
-    s({style:{fontSize:'18px',color:isA?C.dark:C.textH,transition:'color .18s'}},icons[sc]),
+    s({style:{fontSize:'18px',color:isA?C.dark:C.textH}},(icons[sc])),
     s({style:{fontSize:'10px',color:isA?C.dark:C.textH,fontWeight:isA?'600':'400',fontFamily:SS}},lbl)
-    );
-    nav.appendChild(btn);
+    ));
   });
   return nav;
 }
 
-// Progress dots
 function progDots(cur,total=3){
   const w=d({style:{display:'flex',gap:'6px',alignItems:'center'}});
   for(let i=0;i<total;i++)w.appendChild(d({style:{height:'4px',borderRadius:'2px',transition:'all .3s',width:i===cur?'28px':'8px',background:i===cur?C.dark:'rgba(28,43,58,0.2)'}}));
   return w;
 }
 
+function sectionLbl(text){
+  return p({style:{fontSize:'11px',fontWeight:'600',color:C.textH,letterSpacing:'.08em',textTransform:'uppercase',marginBottom:'12px',fontFamily:SS}},text);
+}
+
 /* ══════════════════════════════
-   1. WELCOME
+   WELCOME
 ══════════════════════════════ */
 function welcome(){
   const sc=d({class:'screen',style:{overflow:'hidden',position:'relative',justifyContent:'space-between'}});
-
-  // Subtle radial glow behind orb
   sc.appendChild(d({style:{position:'absolute',top:'60px',left:'50%',transform:'translateX(-50%)',width:'280px',height:'280px',borderRadius:'50%',background:'radial-gradient(circle,rgba(28,43,58,0.05) 0%,transparent 70%)',pointerEvents:'none'}}));
-
   const hero=d({style:{flex:'1',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'80px 32px 40px',textAlign:'center'}});
-
-  // Orb — dark navy circle, sparkle icon, breathing rings
   const orbW=d({style:{position:'relative',width:'96px',height:'96px',margin:'0 auto 36px'}});
   orbW.appendChild(d({style:{position:'absolute',inset:'-14px',borderRadius:'50%',border:'1px solid rgba(28,43,58,0.07)',animation:'breathe 3.5s ease-in-out infinite'}}));
-  const orb=d({style:{
-    width:'100%',height:'100%',borderRadius:'50%',
-    background:`radial-gradient(135deg at 35% 35%, #2D3E50, ${C.dark})`,
-    display:'flex',alignItems:'center',justifyContent:'center',
-    fontSize:'36px',color:'rgba(255,255,255,0.9)',
-    boxShadow:'0 16px 48px rgba(28,43,58,0.3)',
-    animation:'float 5.5s ease-in-out infinite',
-  }},'✦');
-  orbW.appendChild(orb);
-  hero.appendChild(orbW);
-
+  const orb=d({style:{width:'100%',height:'100%',borderRadius:'50%',background:`radial-gradient(135deg at 35% 35%,#2D3E50,${C.dark})`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'36px',color:'rgba(255,255,255,0.9)',boxShadow:'0 16px 48px rgba(28,43,58,0.3)',animation:'float 5.5s ease-in-out infinite'}},'✦');
+  orbW.appendChild(orb);hero.appendChild(orbW);
   hero.appendChild(h(1,{style:{fontFamily:SF,fontSize:'72px',fontStyle:'italic',fontWeight:'400',color:C.dark,letterSpacing:'-.04em',lineHeight:'.88',marginBottom:'14px'}},'Aevi'));
-  hero.appendChild(p({style:{fontFamily:SS,fontSize:'16px',fontWeight:'400',color:C.textM,lineHeight:'1.6',marginBottom:'32px'}},'Your private second mind'));
-
-  // Feature pills — from Figma: white bg, border, rounded pill
+  hero.appendChild(p({style:{fontFamily:SS,fontSize:'16px',color:C.textM,lineHeight:'1.6',marginBottom:'32px'}},'Your private second mind'));
   const pills=d({style:{display:'flex',gap:'8px',justifyContent:'center',flexWrap:'wrap'}});
   ['Remembers you','Thinks with you','Stays private'].forEach(t=>{
-    pills.appendChild(d({style:{
-      padding:'8px 16px',borderRadius:'100px',
-      background:C.card,border:`1px solid ${C.border}`,
-      fontSize:'12px',color:C.dark,fontWeight:'500',fontFamily:SS,
-      boxShadow:'0 1px 3px rgba(0,0,0,0.04)',
-    }},t));
+    pills.appendChild(d({style:{padding:'8px 16px',borderRadius:'100px',background:C.card,border:`1px solid ${C.border}`,fontSize:'12px',color:C.dark,fontWeight:'500',fontFamily:SS,boxShadow:'0 1px 3px rgba(0,0,0,0.04)'}},t));
   });
-  hero.appendChild(pills);
-  sc.appendChild(hero);
-
+  hero.appendChild(pills);sc.appendChild(hero);
   const bottom=d({style:{padding:'0 24px 48px',display:'flex',flexDirection:'column',gap:'10px'}});
   bottom.appendChild(primBtn('Begin your journey',()=>go('signup','sR')));
-  bottom.appendChild(ghostBtn('I already have an account',()=>go('home','sR')));
+  bottom.appendChild(ghostBtn('Sign in to your account',()=>go('login','sR')));
   sc.appendChild(bottom);
   return sc;
 }
 
 /* ══════════════════════════════
-   2. SIGN UP
+   LOGIN
+══════════════════════════════ */
+function login(){
+  const sc=d({class:'screen',style:{overflowY:'auto'}});
+  const wrap=d({style:{padding:'60px 24px 48px',display:'flex',flexDirection:'column',flex:'1'}});
+  wrap.appendChild(backBtn('welcome'));
+  wrap.appendChild(h(2,{style:{fontFamily:SF,fontSize:'52px',fontWeight:'500',color:C.dark,lineHeight:'1.0',marginBottom:'10px'}},'Welcome\nback.'));
+  wrap.appendChild(p({style:{fontSize:'15px',color:C.textM,lineHeight:'1.6',marginBottom:'36px',fontFamily:SS}},'Sign in to continue your journey.'));
+
+  let eV='',pV='';
+  const errBox=d({style:{marginBottom:'4px'}});
+  wrap.appendChild(errBox);
+
+  const emailF=inputField('EMAIL','email','you@example.com',v=>eV=v);
+  const passF=inputField('PASSWORD','password','Your password',v=>pV=v);
+  wrap.append(emailF,passF);
+
+  // Forgot password
+  const forgot=b({onClick:async()=>{
+    if(!eV.trim()){emailF._err('Enter your email first');return;}
+    forgot.disabled=true;forgot.textContent='Sending…';
+    const{error}=await supa.auth.resetPasswordForEmail(eV.trim(),{redirectTo:window.location.origin});
+    forgot.disabled=false;forgot.textContent=error?'Try again':'Check your email ✓';
+  },style:{background:'none',border:'none',fontSize:'13px',color:C.textM,fontFamily:SS,textDecoration:'underline',textAlign:'right',marginBottom:'24px',alignSelf:'flex-end'}});
+  forgot.textContent='Forgot password?';
+  wrap.appendChild(forgot);
+
+  wrap.appendChild(d({style:{flex:'1',minHeight:'24px'}}));
+
+  const loginBtn=primBtn('Sign in',async()=>{
+    errBox.innerHTML='';emailF._err('');passF._err('');
+    if(!eV.trim()){emailF._err('Email is required');return;}
+    if(!pV){passF._err('Password is required');return;}
+    loginBtn.setLoading(true);
+    const{data,error}=await supa.auth.signInWithPassword({email:eV.trim(),password:pV});
+    loginBtn.setLoading(false);
+    if(error){
+      errBox.innerHTML='';
+      errBox.appendChild(errorBanner(error.message==='Invalid login credentials'?'Incorrect email or password. Please try again.':error.message));
+      return;
+    }
+    state.session=data.session;
+    localStorage.setItem('aevi_token',data.session.access_token);
+    const u=await load('av_u');
+    if(u){state.user=u;go('home','sR');}
+    else{go('onboarding','sR');}
+  });
+  wrap.appendChild(loginBtn);
+  wrap.appendChild(d({style:{height:'14px'}}));
+  const sw=p({style:{textAlign:'center',fontSize:'13px',color:C.textM,fontFamily:SS}});
+  sw.innerHTML=`Don't have an account? <span onclick="go('signup','sR')" style="color:${C.dark};font-weight:600;cursor:pointer;text-decoration:underline">Sign up</span>`;
+  wrap.appendChild(sw);
+  sc.appendChild(wrap);return sc;
+}
+
+/* ══════════════════════════════
+   SIGNUP
 ══════════════════════════════ */
 function signup(){
   const sc=d({class:'screen',style:{overflowY:'auto'}});
   const wrap=d({style:{padding:'60px 24px 48px',display:'flex',flexDirection:'column',flex:'1'}});
   wrap.appendChild(backBtn('welcome'));
-
-  // Large serif heading — exactly as Figma
   wrap.appendChild(h(2,{style:{fontFamily:SF,fontSize:'52px',fontWeight:'500',color:C.dark,lineHeight:'1.0',marginBottom:'10px'}},'Create your\nprivate space'));
-  wrap.appendChild(p({style:{fontSize:'15px',color:C.textM,lineHeight:'1.6',marginBottom:'40px',fontFamily:SS}},'Your thoughts stay here. Always.'));
+  wrap.appendChild(p({style:{fontSize:'15px',color:C.textM,lineHeight:'1.6',marginBottom:'36px',fontFamily:SS}},'Your thoughts stay here. Always.'));
 
   let nV='',eV='',pV='';
-  [['YOUR NAME','text','What should I call you?',v=>nV=v],
-   ['EMAIL','email','you@example.com',v=>eV=v],
-   ['PASSWORD','password','••••••••',v=>pV=v]].forEach(([lbl,type,ph,cb])=>{
-    const fw=d({style:{marginBottom:'20px'}});
-    fw.appendChild(p({style:{fontSize:'11px',color:C.textM,fontWeight:'600',letterSpacing:'.09em',textTransform:'uppercase',marginBottom:'8px',fontFamily:SS}},lbl));
-    const i=inp({type,placeholder:ph,style:{
-      width:'100%',padding:'16px 18px',borderRadius:'14px',
-      border:`1px solid ${C.border}`,background:C.card,
-      color:C.dark,fontSize:'15px',fontFamily:SS,
-      boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
-      transition:'border-color .18s,box-shadow .18s',
-    }});
-    i.addEventListener('focus',()=>{i.style.borderColor=C.dark;i.style.boxShadow=`0 0 0 3px rgba(28,43,58,0.08)`;});
-    i.addEventListener('blur',()=>{i.style.borderColor=C.border;i.style.boxShadow='0 1px 4px rgba(0,0,0,0.04)';});
-    i.addEventListener('input',e=>cb(e.target.value));
-    fw.appendChild(i);wrap.appendChild(fw);
-  });
-
+  const errBox=d({style:{marginBottom:'4px'}});wrap.appendChild(errBox);
+  const nameF=inputField('YOUR NAME','text','What should I call you?',v=>nV=v);
+  const emailF=inputField('EMAIL','email','you@example.com',v=>eV=v);
+  const passF=inputField('PASSWORD','password','At least 8 characters',v=>pV=v);
+  wrap.append(nameF,emailF,passF);
   wrap.appendChild(d({style:{flex:'1',minHeight:'24px'}}));
-  wrap.appendChild(primBtn('Continue',()=>{if(nV.trim()){state.user.name=nV.trim();go('onboarding','sR');}}));
+
+  const signupBtn=primBtn('Create account',async()=>{
+    errBox.innerHTML='';nameF._err('');emailF._err('');passF._err('');
+    let valid=true;
+    if(!nV.trim()){nameF._err('Name is required');valid=false;}
+    if(!eV.trim()||!eV.includes('@')){emailF._err('Valid email is required');valid=false;}
+    if(pV.length<8){passF._err('Password must be at least 8 characters');valid=false;}
+    if(!valid)return;
+
+    signupBtn.setLoading(true);
+    const{data,error}=await supa.auth.signUp({
+      email:eV.trim(),password:pV,
+      options:{data:{full_name:nV.trim()}},
+    });
+    signupBtn.setLoading(false);
+
+    if(error){
+      errBox.innerHTML='';
+      errBox.appendChild(errorBanner(error.message));
+      return;
+    }
+
+    state.user.name=nV.trim();
+    // If email confirmation required
+    if(!data.session){
+      // Show confirmation message
+      wrap.innerHTML='';
+      wrap.appendChild(d({style:{flex:'1',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'40px 24px',textAlign:'center'}}));
+      const conf=wrap.firstChild;
+      conf.appendChild(d({style:{fontSize:'48px',marginBottom:'24px'}},'✉'));
+      conf.appendChild(h(2,{style:{fontFamily:SF,fontSize:'40px',fontStyle:'italic',color:C.dark,marginBottom:'12px',fontWeight:'400'}},'Check your email'));
+      conf.appendChild(p({style:{fontSize:'15px',color:C.textM,lineHeight:'1.7',fontFamily:SS,maxWidth:'280px'}},`We sent a confirmation link to ${eV.trim()}. Click it to activate your account.`));
+      conf.appendChild(d({style:{height:'32px'}}));
+      conf.appendChild(b({onClick:()=>go('login','sR'),style:{padding:'14px 28px',borderRadius:'14px',background:C.dark,color:'#FFF',fontSize:'14px',fontWeight:'600',fontFamily:SS}},'Back to sign in'));
+      return;
+    }
+
+    state.session=data.session;
+    localStorage.setItem('aevi_token',data.session.access_token);
+    go('onboarding','sR');
+  });
+  wrap.appendChild(signupBtn);
   wrap.appendChild(d({style:{height:'14px'}}));
   const note=p({style:{textAlign:'center',fontSize:'12px',color:C.textH,fontFamily:SS}});
   note.innerHTML=`By continuing you agree to our <span style="color:${C.dark};text-decoration:underline;cursor:pointer">Privacy Policy</span>`;
   wrap.appendChild(note);
+  wrap.appendChild(d({style:{height:'10px'}}));
+  const sw=p({style:{textAlign:'center',fontSize:'13px',color:C.textM,fontFamily:SS}});
+  sw.innerHTML=`Already have an account? <span onclick="go('login','sL')" style="color:${C.dark};font-weight:600;cursor:pointer;text-decoration:underline">Sign in</span>`;
+  wrap.appendChild(sw);
   sc.appendChild(wrap);return sc;
 }
 
 /* ══════════════════════════════
-   3. ONBOARDING — Goal selection
+   ONBOARDING
 ══════════════════════════════ */
 function onboarding(){
   const sc=d({class:'screen',style:{overflowY:'auto'}});
   const wrap=d({style:{padding:'60px 24px 48px',display:'flex',flexDirection:'column',flex:'1'}});
-  wrap.appendChild(backBtn('signup'));
-
   wrap.appendChild(h(2,{style:{fontFamily:SF,fontSize:'52px',fontWeight:'500',color:C.dark,lineHeight:'1.0',marginBottom:'10px'}},'What brings\nyou here?'));
   wrap.appendChild(p({style:{fontSize:'15px',color:C.textM,lineHeight:'1.6',marginBottom:'32px',fontFamily:SS}},"I'll shape how I think around your goal."));
-
   let sel='';
   const goals=[
     {id:'reflect',icon:'◎',label:'Self-reflection',sub:'Process thoughts and understand myself'},
@@ -291,40 +390,17 @@ function onboarding(){
     {id:'create',icon:'✦',label:'Creative writing',sub:'Turn raw ideas into polished content'},
     {id:'journal',icon:'◇',label:'Daily journaling',sub:'Build a consistent reflection habit'},
   ];
-
   const cards=goals.map(g=>{
-    const card=b({style:{
-      width:'100%',padding:'18px 20px',
-      borderRadius:'16px',
-      border:`1px solid ${C.border}`,
-      background:C.card,textAlign:'left',marginBottom:'10px',
-      display:'flex',alignItems:'center',gap:'16px',
-      boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
-      transition:'all .15s',
-    }});
-    const ico=d({style:{
-      width:'48px',height:'48px',borderRadius:'14px',
-      background:'#F4F1EB',border:`1px solid ${C.border}`,
-      display:'flex',alignItems:'center',justifyContent:'center',
-      fontSize:'20px',color:C.textM,flexShrink:'0',transition:'all .15s',
-    }},g.icon);
+    const card=b({style:{width:'100%',padding:'18px 20px',borderRadius:'16px',border:`1px solid ${C.border}`,background:C.card,textAlign:'left',marginBottom:'10px',display:'flex',alignItems:'center',gap:'16px',boxShadow:'0 1px 4px rgba(0,0,0,0.04)',transition:'all .15s'}});
+    const ico=d({style:{width:'48px',height:'48px',borderRadius:'14px',background:'#F4F1EB',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',color:C.textM,flexShrink:'0',transition:'all .15s'}},g.icon);
     const txt=d({style:{flex:'1'}});
     txt.appendChild(d({style:{fontSize:'15px',fontWeight:'600',color:C.dark,marginBottom:'3px',fontFamily:SS}},g.label));
     txt.appendChild(d({style:{fontSize:'13px',color:C.textM,lineHeight:'1.4',fontFamily:SS}},g.sub));
-    const chk=d({style:{
-      width:'24px',height:'24px',borderRadius:'50%',
-      border:`1.5px solid ${C.border}`,flexShrink:'0',
-      transition:'all .15s',display:'flex',alignItems:'center',justifyContent:'center',
-      fontSize:'12px',color:'transparent',
-    }});
+    const chk=d({style:{width:'24px',height:'24px',borderRadius:'50%',border:`1.5px solid ${C.border}`,flexShrink:'0',transition:'all .15s',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',color:'transparent'}});
     card.append(ico,txt,chk);
     card.addEventListener('click',()=>{
       sel=g.id;
-      cards.forEach(c=>{
-        c.style.border=`1px solid ${C.border}`;c.style.background=C.card;c.style.boxShadow='0 1px 4px rgba(0,0,0,0.04)';
-        c.firstChild.style.background='#F4F1EB';c.firstChild.style.color=C.textM;c.firstChild.style.border=`1px solid ${C.border}`;
-        c.lastChild.style.background='transparent';c.lastChild.style.border=`1.5px solid ${C.border}`;c.lastChild.style.color='transparent';c.lastChild.textContent='';
-      });
+      cards.forEach(c=>{c.style.border=`1px solid ${C.border}`;c.style.background=C.card;c.style.boxShadow='0 1px 4px rgba(0,0,0,0.04)';c.firstChild.style.background='#F4F1EB';c.firstChild.style.color=C.textM;c.firstChild.style.border=`1px solid ${C.border}`;c.lastChild.style.background='transparent';c.lastChild.style.border=`1.5px solid ${C.border}`;c.lastChild.style.color='transparent';c.lastChild.textContent='';});
       card.style.border=`1.5px solid ${C.dark}`;card.style.background='#FFFFFF';card.style.boxShadow=`0 4px 16px rgba(28,43,58,0.1)`;
       ico.style.background=C.dark;ico.style.color='#FFFFFF';ico.style.border=`1px solid ${C.dark}`;
       chk.style.background=C.dark;chk.style.border=`1.5px solid ${C.dark}`;chk.style.color='#FFFFFF';chk.textContent='✓';
@@ -333,140 +409,84 @@ function onboarding(){
   });
   cards.forEach(c=>wrap.appendChild(c));
   wrap.appendChild(d({style:{flex:'1',minHeight:'20px'}}));
-
   const bot=d({style:{display:'flex',alignItems:'center',justifyContent:'space-between'}});
   bot.appendChild(progDots(0));
-  const nb=b({onClick:()=>{if(sel){state.user.goal=sel;go('persona','sR');}},style:{
-    height:'52px',padding:'0 28px',borderRadius:'16px',
-    background:C.dark,color:'#FFFFFF',
-    fontSize:'15px',fontWeight:'600',fontFamily:SS,
-    display:'flex',alignItems:'center',gap:'10px',
-    boxShadow:`0 4px 16px rgba(28,43,58,0.22)`,
-  }},'Next ',s({style:{fontSize:'16px'}},'→'));
-  bot.appendChild(nb);wrap.appendChild(bot);sc.appendChild(wrap);return sc;
+  bot.appendChild(b({onClick:()=>{if(sel){state.user.goal=sel;go('persona','sR');}},style:{height:'52px',padding:'0 28px',borderRadius:'16px',background:C.dark,color:'#FFF',fontSize:'15px',fontWeight:'600',fontFamily:SS,display:'flex',alignItems:'center',gap:'10px',boxShadow:`0 4px 16px rgba(28,43,58,0.22)`}},'Next ',s({style:{fontSize:'16px'}},'→')));
+  wrap.appendChild(bot);sc.appendChild(wrap);return sc;
 }
 
 /* ══════════════════════════════
-   4. PERSONA — Voice & topics
+   PERSONA
 ══════════════════════════════ */
 function persona(){
   const sc=d({class:'screen',style:{overflowY:'auto'}});
   const wrap=d({style:{padding:'60px 24px 48px',display:'flex',flexDirection:'column',flex:'1'}});
   wrap.appendChild(backBtn('onboarding'));
-
   wrap.appendChild(h(2,{style:{fontFamily:SF,fontSize:'52px',fontWeight:'500',color:C.dark,lineHeight:'1.0',marginBottom:'10px'}},'Shape\nmy voice'));
   wrap.appendChild(p({style:{fontSize:'15px',color:C.textM,lineHeight:'1.6',marginBottom:'28px',fontFamily:SS}},'How should I sound when I talk to you?'));
-
   let tone='';const selT=[];
   const grid=d({style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'28px'}});
   const tones=[{id:'warm',l:'Warm & gentle'},{id:'direct',l:'Direct & honest'},{id:'curious',l:'Curious & deep'},{id:'calm',l:'Calm & grounding'}];
   const tBtns=tones.map(t=>{
-    const btn=b({style:{
-      padding:'18px 14px',borderRadius:'16px',
-      border:`1px solid ${C.border}`,background:C.card,
-      color:C.textS,fontSize:'14px',fontFamily:SS,fontWeight:'500',
-      boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
-      transition:'all .14s',textAlign:'center',
-    }},t.l);
-    btn.addEventListener('click',()=>{
-      tone=t.id;
-      tBtns.forEach(x=>{x.style.border=`1px solid ${C.border}`;x.style.background=C.card;x.style.color=C.textS;});
-      btn.style.border=`1.5px solid ${C.dark}`;btn.style.background=C.dark;btn.style.color='#FFFFFF';
-    });
+    const btn=b({style:{padding:'18px 14px',borderRadius:'16px',border:`1px solid ${C.border}`,background:C.card,color:C.textS,fontSize:'14px',fontFamily:SS,fontWeight:'500',boxShadow:'0 1px 4px rgba(0,0,0,0.04)',transition:'all .14s',textAlign:'center'}},t.l);
+    btn.addEventListener('click',()=>{tone=t.id;tBtns.forEach(x=>{x.style.border=`1px solid ${C.border}`;x.style.background=C.card;x.style.color=C.textS;});btn.style.border=`1.5px solid ${C.dark}`;btn.style.background=C.dark;btn.style.color='#FFF';});
     return btn;
   });
   tBtns.forEach(b=>grid.appendChild(b));wrap.appendChild(grid);
-
   wrap.appendChild(p({style:{fontSize:'15px',fontWeight:'600',color:C.dark,marginBottom:'14px',fontFamily:SS}},"Topics you'd like to explore"));
   const tagW=d({style:{display:'flex',flexWrap:'wrap',gap:'8px',marginBottom:'40px'}});
   ['Work & career','Relationships','Creativity','Health','Purpose','Decisions','Emotions','Ideas'].forEach(t=>{
-    const tg=b({style:{
-      padding:'9px 18px',borderRadius:'100px',
-      border:`1px solid ${C.border}`,background:C.card,
-      color:C.textS,fontSize:'13px',fontFamily:SS,fontWeight:'500',
-      boxShadow:'0 1px 3px rgba(0,0,0,0.04)',
-      transition:'all .14s',
-    }},t);
+    const tg=b({style:{padding:'9px 18px',borderRadius:'100px',border:`1px solid ${C.border}`,background:C.card,color:C.textS,fontSize:'13px',fontFamily:SS,fontWeight:'500',boxShadow:'0 1px 3px rgba(0,0,0,0.04)',transition:'all .14s'}},t);
     tg.addEventListener('click',()=>{
       if(selT.includes(t)){selT.splice(selT.indexOf(t),1);tg.style.border=`1px solid ${C.border}`;tg.style.background=C.card;tg.style.color=C.textS;}
-      else{selT.push(t);tg.style.border=`1.5px solid ${C.dark}`;tg.style.background=C.dark;tg.style.color='#FFFFFF';}
+      else{selT.push(t);tg.style.border=`1.5px solid ${C.dark}`;tg.style.background=C.dark;tg.style.color='#FFF';}
     });
     tagW.appendChild(tg);
   });
   wrap.appendChild(tagW);
   wrap.appendChild(d({style:{flex:'1',minHeight:'12px'}}));
-
   const bot=d({style:{display:'flex',alignItems:'center',justifyContent:'space-between'}});
   bot.appendChild(progDots(2));
-  const nb=b({onClick:async()=>{
+  bot.appendChild(b({onClick:async()=>{
     if(!tone)return;
     state.user.tone=tone;state.user.topics=[...selT];
     await save('av_u',state.user);go('home','sR');
-  },style:{height:'52px',padding:'0 28px',borderRadius:'16px',background:C.dark,color:'#FFFFFF',fontSize:'15px',fontWeight:'600',fontFamily:SS,display:'flex',alignItems:'center',gap:'10px',boxShadow:`0 4px 16px rgba(28,43,58,0.22)`}},'Meet Aevi ',s({style:{fontSize:'16px'}},'→'));
-  bot.appendChild(nb);wrap.appendChild(bot);sc.appendChild(wrap);return sc;
+  },style:{height:'52px',padding:'0 28px',borderRadius:'16px',background:C.dark,color:'#FFF',fontSize:'15px',fontWeight:'600',fontFamily:SS,display:'flex',alignItems:'center',gap:'10px',boxShadow:`0 4px 16px rgba(28,43,58,0.22)`}},'Meet Aevi ',s({style:{fontSize:'16px'}},'→')));
+  wrap.appendChild(bot);sc.appendChild(wrap);return sc;
 }
 
 /* ══════════════════════════════
-   5. HOME
+   HOME
 ══════════════════════════════ */
 function home(){
   const sc=d({class:'screen'});
   const hour=new Date().getHours();
   const greet=hour<5?'Good night':hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
-
-  // Header — flat, no card
   const hdr=d({style:{padding:'56px 24px 20px',borderBottom:`1px solid ${C.border}`,background:C.bg}});
   const hrow=d({style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}});
   const hL=d({});
   hL.appendChild(p({style:{fontSize:'13px',color:C.textM,marginBottom:'4px',fontFamily:SS}},greet));
   hL.appendChild(h(2,{style:{fontFamily:SF,fontSize:'38px',fontWeight:'500',color:C.dark,lineHeight:'1.0'}},(state.user.name||'Friend')));
   const hR=d({style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'8px'}});
-  hR.appendChild(b({onClick:()=>go('upgrade','sR'),style:{
-    padding:'7px 16px',borderRadius:'100px',
-    background:C.card,border:`1px solid ${C.border}`,
-    color:C.dark,fontSize:'12px',fontFamily:SS,fontWeight:'600',
-    boxShadow:'0 1px 4px rgba(0,0,0,0.06)',
-  }},'Free'));
+  hR.appendChild(b({onClick:()=>go('upgrade','sR'),style:{padding:'7px 16px',borderRadius:'100px',background:C.card,border:`1px solid ${C.border}`,color:C.dark,fontSize:'12px',fontFamily:SS,fontWeight:'600',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}},'Free'));
   hR.appendChild(b({onClick:async()=>{
+    await supa.auth.signOut();
     await save('av_u',null);await save('av_m',null);await save('av_msgs',null);
-    state.user={name:'',goal:'',tone:'',topics:[]};state.mem=[];state.msgs=[];go('welcome','sL');
+    state.user={name:'',goal:'',tone:'',topics:[]};state.mem=[];state.msgs=[];state.session=null;
+    go('welcome','sL');
   },style:{background:'none',border:'none',fontSize:'12px',color:C.textH,fontFamily:SS,textDecoration:'underline'}},'Sign out'));
   hrow.append(hL,hR);hdr.appendChild(hrow);sc.appendChild(hdr);
-
   const body=d({style:{flex:'1',overflowY:'auto',padding:'24px 20px 110px',background:C.bg}});
-
-  // Memory card — white card with left accent border (exactly from Figma)
   if(state.mem.length>0){
-    const mc=d({style:{
-      background:C.card,borderRadius:'16px',
-      border:`1px solid ${C.border}`,
-      borderLeft:`3px solid ${C.dark}`,
-      padding:'18px 20px',marginBottom:'24px',
-      boxShadow:'0 1px 6px rgba(0,0,0,0.05)',
-    }});
+    const mc=d({style:{background:C.card,borderRadius:'16px',border:`1px solid ${C.border}`,borderLeft:`3px solid ${C.dark}`,padding:'18px 20px',marginBottom:'24px',boxShadow:'0 1px 6px rgba(0,0,0,0.05)'}});
     mc.appendChild(p({style:{fontSize:'10px',color:C.textH,letterSpacing:'.09em',textTransform:'uppercase',marginBottom:'8px',fontFamily:SS,fontWeight:'600'}},'AEVI REMEMBERS'));
     mc.appendChild(p({style:{fontFamily:SS,fontSize:'15px',color:C.dark,lineHeight:'1.6'}},'"'+state.mem[state.mem.length-1].value+'"'));
     body.appendChild(mc);
   }
-
   body.appendChild(sectionLbl('Start here'));
-
-  // Prompt cards — white cards, from Figma
   const pgrid=d({style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'24px'}});
-  const prompts=[
-    {q:"What's weighing on your mind?",featured:true,sub:'→ Explore'},
-    {q:"Any decisions?",featured:false},
-    {q:"A feeling today?",featured:false},
-  ];
-  prompts.forEach(({q,featured,sub})=>{
-    const pc=b({onClick:()=>go('chat','sR'),style:{
-      gridColumn:featured?'span 2':'span 1',
-      padding:featured?'20px':'18px 16px',
-      borderRadius:'16px',border:`1px solid ${C.border}`,
-      background:C.card,textAlign:'left',
-      boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
-      transition:'all .14s',
-    }});
+  [{q:"What's weighing on your mind?",featured:true,sub:'→ Explore'},{q:"Any decisions?",featured:false},{q:"A feeling today?",featured:false}].forEach(({q,featured,sub})=>{
+    const pc=b({onClick:()=>go('chat','sR'),style:{gridColumn:featured?'span 2':'span 1',padding:featured?'20px':'18px 16px',borderRadius:'16px',border:`1px solid ${C.border}`,background:C.card,textAlign:'left',boxShadow:'0 1px 4px rgba(0,0,0,0.04)',transition:'all .14s'}});
     pc.appendChild(p({style:{fontSize:featured?'15px':'13px',fontWeight:'600',color:C.dark,lineHeight:'1.4',marginBottom:sub?'8px':'0',fontFamily:SS}},q));
     if(sub)pc.appendChild(s({style:{fontSize:'13px',color:C.textM,fontFamily:SS}},sub));
     pc.addEventListener('mouseover',()=>{pc.style.borderColor=C.dark;pc.style.transform='translateY(-1px)';pc.style.boxShadow='0 4px 14px rgba(28,43,58,0.1)';});
@@ -474,8 +494,6 @@ function home(){
     pgrid.appendChild(pc);
   });
   body.appendChild(pgrid);
-
-  // Stats — white cards
   const stats=d({style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'20px'}});
   [{l:'Memories',v:state.mem.length},{l:'Days active',v:1}].forEach(stat=>{
     const sc2=d({style:{background:C.card,borderRadius:'16px',padding:'18px 16px',border:`1px solid ${C.border}`,boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}});
@@ -484,8 +502,6 @@ function home(){
     stats.appendChild(sc2);
   });
   body.appendChild(stats);
-
-  // Streak card
   const streak=d({style:{background:C.card,borderRadius:'16px',padding:'18px',border:`1px solid ${C.border}`,boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}});
   streak.appendChild(p({style:{fontSize:'14px',fontWeight:'600',color:C.dark,marginBottom:'14px',fontFamily:SS}},'Reflection streak'));
   const days=d({style:{display:'flex',gap:'6px'}});
@@ -493,11 +509,7 @@ function home(){
   ['M','T','W','T','F','S','S'].forEach((day,i)=>{
     const isT=i===(today===0?6:today-1);
     const dc=d({style:{flex:'1',display:'flex',flexDirection:'column',alignItems:'center',gap:'5px'}});
-    dc.appendChild(d({style:{
-      width:'100%',aspectRatio:'1',borderRadius:'10px',
-      background:isT?C.dark:'rgba(28,43,58,0.07)',
-      display:'flex',alignItems:'center',justifyContent:'center',
-    }},isT?s({style:{fontSize:'10px',color:'#FFFFFF',fontWeight:'700',fontFamily:SS}},day):''));
+    dc.appendChild(d({style:{width:'100%',aspectRatio:'1',borderRadius:'10px',background:isT?C.dark:'rgba(28,43,58,0.07)',display:'flex',alignItems:'center',justifyContent:'center'}},isT?s({style:{fontSize:'10px',color:'#FFF',fontWeight:'700',fontFamily:SS}},day):''));
     if(!isT)dc.appendChild(s({style:{fontSize:'10px',color:C.textH,fontFamily:SS}},day));
     days.appendChild(dc);
   });
@@ -506,143 +518,76 @@ function home(){
 }
 
 /* ══════════════════════════════
-   6. CHAT
+   CHAT
 ══════════════════════════════ */
 function chat(){
   const sc=d({class:'screen',style:{display:'flex',flexDirection:'column'}});
-
-  // Header
-  const hdr=d({style:{
-    padding:'52px 20px 16px',background:C.bg,
-    borderBottom:`1px solid ${C.border}`,flexShrink:'0',
-    display:'flex',flexDirection:'column',alignItems:'center',position:'relative',
-  }});
-  hdr.appendChild(b({onClick:()=>go('home','sL'),style:{
-    position:'absolute',left:'20px',top:'56px',
-    width:'38px',height:'38px',borderRadius:'50%',
-    background:C.card,border:`1px solid ${C.border}`,
-    display:'flex',alignItems:'center',justifyContent:'center',
-    fontSize:'16px',color:C.dark,boxShadow:'0 1px 4px rgba(0,0,0,0.06)',
-  }},'←'));
-
-  const av=d({style:{
-    width:'52px',height:'52px',borderRadius:'50%',
-    background:C.dark,display:'flex',alignItems:'center',justifyContent:'center',
-    fontSize:'20px',color:'rgba(255,255,255,0.9)',
-    boxShadow:'0 6px 20px rgba(28,43,58,0.22)',
-    marginBottom:'8px',position:'relative',
-  }},'✦');
+  const hdr=d({style:{padding:'52px 20px 16px',background:C.bg,borderBottom:`1px solid ${C.border}`,flexShrink:'0',display:'flex',flexDirection:'column',alignItems:'center',position:'relative'}});
+  hdr.appendChild(b({onClick:()=>go('home','sL'),style:{position:'absolute',left:'20px',top:'56px',width:'38px',height:'38px',borderRadius:'50%',background:C.card,border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',color:C.dark,boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}},'←'));
+  const av=d({style:{width:'52px',height:'52px',borderRadius:'50%',background:C.dark,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',color:'rgba(255,255,255,0.9)',boxShadow:'0 6px 20px rgba(28,43,58,0.22)',marginBottom:'8px',position:'relative'}},'✦');
   av.appendChild(d({style:{position:'absolute',bottom:'2px',right:'2px',width:'12px',height:'12px',borderRadius:'50%',background:C.green,border:`2px solid ${C.bg}`}}));
   hdr.appendChild(av);
   hdr.appendChild(d({style:{fontSize:'16px',fontWeight:'600',color:C.dark,fontFamily:SS}},'Aevi'));
   hdr.appendChild(d({style:{fontSize:'13px',color:C.textM,fontFamily:SS,marginTop:'2px'}},'your second mind'));
   sc.appendChild(hdr);
-
   const msgsArea=d({style:{flex:'1',overflowY:'auto',padding:'20px 16px 8px',background:C.bg}});
-
   function renderMsgs(){
     msgsArea.innerHTML='';
+    const sEl=document.createElement('style');
+    sEl.textContent=`@keyframes fU{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`;
+    document.head.appendChild(sEl);
     if(state.msgs.length===0){
       const empty=d({style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'56vh',padding:'24px',textAlign:'center'}});
       const ew=d({style:{position:'relative',width:'84px',height:'84px',margin:'0 auto 28px'}});
       ew.appendChild(d({style:{position:'absolute',inset:'-12px',borderRadius:'50%',border:'1px solid rgba(28,43,58,0.08)',animation:'breathe 3.5s ease-in-out infinite'}}));
-      const orbE=d({style:{width:'100%',height:'100%',borderRadius:'50%',background:C.dark,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',color:'rgba(255,255,255,0.9)',boxShadow:'0 12px 36px rgba(28,43,58,0.2)',animation:'float 5.5s ease-in-out infinite'}},'✦');
-      ew.appendChild(orbE);empty.appendChild(ew);
+      ew.appendChild(d({style:{width:'100%',height:'100%',borderRadius:'50%',background:C.dark,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',color:'rgba(255,255,255,0.9)',boxShadow:'0 12px 36px rgba(28,43,58,0.2)',animation:'float 5.5s ease-in-out infinite'}},'✦'));
+      empty.appendChild(ew);
       empty.appendChild(h(3,{style:{fontFamily:SF,fontSize:'32px',color:C.dark,marginBottom:'10px',fontWeight:'400',fontStyle:'italic'}},"What's on your mind?"));
       empty.appendChild(p({style:{fontSize:'14px',color:C.textM,lineHeight:'1.7',marginBottom:'32px',maxWidth:'240px',fontFamily:SS}},'A thought, a feeling, a decision — bring it here.'));
       const pw=d({style:{display:'flex',flexDirection:'column',gap:'8px',width:'100%',maxWidth:'280px'}});
       ["I've been thinking about...","I need to decide...","Something's been bothering me...","I had an idea today..."].forEach(pr=>{
-        pw.appendChild(b({onClick:()=>{ta.value=pr;ta.dispatchEvent(new Event('input'));ta.focus();},style:{
-          background:C.card,border:`1px solid ${C.border}`,
-          color:C.dark,borderRadius:'14px',padding:'13px 16px',
-          fontSize:'13px',fontFamily:SS,textAlign:'left',
-          boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
-          transition:'all .14s',fontWeight:'500',
-        }},pr));
+        pw.appendChild(b({onClick:()=>{ta.value=pr;ta.dispatchEvent(new Event('input'));ta.focus();},style:{background:C.card,border:`1px solid ${C.border}`,color:C.dark,borderRadius:'14px',padding:'13px 16px',fontSize:'13px',fontFamily:SS,textAlign:'left',boxShadow:'0 1px 4px rgba(0,0,0,0.04)',transition:'all .14s',fontWeight:'500'}},pr));
       });
       empty.appendChild(pw);msgsArea.appendChild(empty);
     } else {
-      const sEl=document.createElement('style');
-      sEl.textContent=`@keyframes fU{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`;
-      document.head.appendChild(sEl);
       state.msgs.forEach((msg,idx)=>{
         const isU=msg.role==='user';
         const wrap=d({style:{display:'flex',flexDirection:isU?'row-reverse':'row',gap:'10px',alignItems:'flex-end',marginBottom:'16px',animation:`fU .22s ease forwards`,animationDelay:`${Math.min(idx,4)*0.04}s`,opacity:'0'}});
-        if(!isU){
-          wrap.appendChild(d({style:{width:'30px',height:'30px',borderRadius:'50%',background:C.dark,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',color:'rgba(255,255,255,0.9)',flexShrink:'0',boxShadow:'0 2px 8px rgba(28,43,58,0.15)'}},'✦'));
-        }
+        if(!isU)wrap.appendChild(d({style:{width:'30px',height:'30px',borderRadius:'50%',background:C.dark,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',color:'rgba(255,255,255,0.9)',flexShrink:'0',boxShadow:'0 2px 8px rgba(28,43,58,0.15)'}},'✦'));
         const inner=d({style:{maxWidth:'78%'}});
         const lbl=d({style:{fontSize:'11px',color:C.textH,marginBottom:'4px',fontFamily:SS,display:'flex',alignItems:'center',gap:'6px',flexDirection:isU?'row-reverse':'row'}});
         lbl.append(s({},isU?'You':'Aevi'),s({style:{opacity:'.7'}},new Date(msg.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})));
         inner.appendChild(lbl);
-        const bubble=d({style:{
-          background:isU?C.dark:C.card,
-          border:isU?'none':`1px solid ${C.border}`,
-          borderRadius:isU?'20px 20px 4px 20px':'20px 20px 20px 4px',
-          padding:'13px 17px',color:isU?'#FFFFFF':C.dark,
-          fontSize:'14px',lineHeight:'1.75',whiteSpace:'pre-wrap',fontFamily:SS,
-          boxShadow:isU?'0 4px 14px rgba(28,43,58,0.18)':'0 1px 4px rgba(0,0,0,0.05)',
-        }},msg.content);
-        inner.appendChild(bubble);wrap.appendChild(inner);msgsArea.appendChild(wrap);
+        inner.appendChild(d({style:{background:isU?C.dark:C.card,border:isU?'none':`1px solid ${C.border}`,borderRadius:isU?'20px 20px 4px 20px':'20px 20px 20px 4px',padding:'13px 17px',color:isU?'#FFF':C.dark,fontSize:'14px',lineHeight:'1.75',whiteSpace:'pre-wrap',fontFamily:SS,boxShadow:isU?'0 4px 14px rgba(28,43,58,0.18)':'0 1px 4px rgba(0,0,0,0.05)'}},msg.content));
+        wrap.appendChild(inner);msgsArea.appendChild(wrap);
       });
       if(state.loading){
         const wrap=d({style:{display:'flex',gap:'10px',alignItems:'flex-end',marginBottom:'16px'}});
         wrap.appendChild(d({style:{width:'30px',height:'30px',borderRadius:'50%',background:C.dark,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',color:'rgba(255,255,255,0.9)',flexShrink:'0'}},'✦'));
         const dots=d({style:{background:C.card,border:`1px solid ${C.border}`,borderRadius:'20px 20px 20px 4px',padding:'13px 18px',display:'flex',gap:'6px',boxShadow:'0 1px 4px rgba(0,0,0,0.05)'}});
-        [0,1,2].forEach(i=>{const dot=d({style:{width:'7px',height:'7px',borderRadius:'50%',background:C.textM,animation:'dotP 1.2s ease-in-out infinite',animationDelay:i*0.2+'s'}});dots.appendChild(dot);});
+        [0,1,2].forEach(i=>{dots.appendChild(d({style:{width:'7px',height:'7px',borderRadius:'50%',background:C.textM,animation:'dotP 1.2s ease-in-out infinite',animationDelay:i*0.2+'s'}}));});
         wrap.appendChild(dots);msgsArea.appendChild(wrap);
       }
       setTimeout(()=>msgsArea.lastElementChild?.scrollIntoView({behavior:'smooth'}),50);
     }
   }
-  const sEl=document.createElement('style');
-  sEl.textContent=`@keyframes fU{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`;
-  document.head.appendChild(sEl);
   renderMsgs();sc.appendChild(msgsArea);
-
-  // Input bar — from Figma: white rounded rect, dark send button
   const inputBar=d({style:{padding:'12px 16px 28px',background:C.bg,borderTop:`1px solid ${C.border}`,flexShrink:'0'}});
-  const inputWrap=d({style:{
-    display:'flex',gap:'10px',alignItems:'flex-end',
-    background:C.card,border:`1px solid ${C.border}`,
-    borderRadius:'18px',padding:'10px 10px 10px 18px',
-    boxShadow:'0 1px 6px rgba(0,0,0,0.06)',
-    transition:'border-color .18s,box-shadow .18s',
-  }});
+  const inputWrap=d({style:{display:'flex',gap:'10px',alignItems:'flex-end',background:C.card,border:`1px solid ${C.border}`,borderRadius:'18px',padding:'10px 10px 10px 18px',boxShadow:'0 1px 6px rgba(0,0,0,0.06)',transition:'border-color .18s,box-shadow .18s'}});
   inputWrap.addEventListener('focusin',()=>{inputWrap.style.borderColor=C.dark;inputWrap.style.boxShadow=`0 0 0 3px rgba(28,43,58,0.08)`;});
   inputWrap.addEventListener('focusout',()=>{inputWrap.style.borderColor=C.border;inputWrap.style.boxShadow='0 1px 6px rgba(0,0,0,0.06)';});
-
-  const ta=el('textarea',{placeholder:'A thought, a question, anything...',rows:'1',style:{
-    flex:'1',border:'none',background:'transparent',color:C.dark,
-    fontSize:'14px',lineHeight:'1.6',maxHeight:'130px',minHeight:'24px',
-    paddingTop:'2px',resize:'none',fontFamily:SS,
-  }});
-  ta.addEventListener('input',()=>{
-    ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,130)+'px';
-    sendB.style.opacity=ta.value.trim()&&!state.loading?'1':'.35';
-    sendB.style.transform=ta.value.trim()?'scale(1)':'scale(.9)';
-  });
+  const ta=el('textarea',{placeholder:'A thought, a question, anything...',rows:'1',style:{flex:'1',border:'none',background:'transparent',color:C.dark,fontSize:'14px',lineHeight:'1.6',maxHeight:'130px',minHeight:'24px',paddingTop:'2px',resize:'none',fontFamily:SS}});
+  ta.addEventListener('input',()=>{ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,130)+'px';sendB.style.opacity=ta.value.trim()&&!state.loading?'1':'.35';sendB.style.transform=ta.value.trim()?'scale(1)':'scale(.9)';});
   ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSend();}});
-
-  // Send btn — rounded rect with paper-plane icon (matching Figma)
-  const sendB=b({style:{
-    width:'40px',height:'40px',borderRadius:'12px',
-    background:C.dark,color:'rgba(255,255,255,0.9)',fontSize:'16px',
-    display:'flex',alignItems:'center',justifyContent:'center',
-    flexShrink:'0',boxShadow:'0 4px 12px rgba(28,43,58,0.2)',
-    opacity:'.35',transform:'scale(.9)',transition:'all .18s',
-  }},'↑');
-  sendB.addEventListener('click',doSend);
-  inputWrap.append(ta,sendB);inputBar.appendChild(inputWrap);
-  sc.appendChild(inputBar);
-
+  const sendB=b({style:{width:'40px',height:'40px',borderRadius:'12px',background:C.dark,color:'rgba(255,255,255,0.9)',fontSize:'16px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:'0',boxShadow:'0 4px 12px rgba(28,43,58,0.2)',opacity:'.35',transform:'scale(.9)',transition:'all .18s'}},'↑');
+  sendB.addEventListener('click',doSend);inputWrap.append(ta,sendB);inputBar.appendChild(inputWrap);sc.appendChild(inputBar);
   async function doSend(){
     const text=ta.value.trim();if(!text||state.loading)return;
     ta.value='';ta.style.height='24px';sendB.style.opacity='.35';sendB.style.transform='scale(.9)';
     state.msgs.push({id:'u'+Date.now(),role:'user',content:text,ts:Date.now()});
     await save('av_msgs',state.msgs.slice(-60));state.loading=true;renderMsgs();
     try{
-      const token=state.token||localStorage.getItem('aevi_token');
+      const token=state.session?.access_token||localStorage.getItem('aevi_token');
       const res=await fetch(`${BACKEND}/api/chat`,{method:'POST',headers:{'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},body:JSON.stringify({messages:state.msgs.map(m=>({role:m.role,content:m.content}))})});
       if(res.status===429){state.msgs.push({id:'l'+Date.now(),role:'assistant',ts:Date.now(),content:"You've reached your 5 message daily limit.\n\nUpgrade to Aevi Plus for unlimited conversations."});await save('av_msgs',state.msgs.slice(-60));state.loading=false;renderMsgs();setTimeout(()=>go('upgrade','sR'),2500);return;}
       if(!res.ok)throw new Error('HTTP '+res.status);
@@ -657,7 +602,7 @@ function chat(){
 }
 
 /* ══════════════════════════════
-   7. INSIGHTS
+   INSIGHTS
 ══════════════════════════════ */
 function insights(){
   const sc=d({class:'screen'});
@@ -665,38 +610,20 @@ function insights(){
   hdr.appendChild(h(2,{style:{fontFamily:SF,fontSize:'44px',fontWeight:'500',color:C.dark,fontStyle:'italic'}},'Insights'));
   hdr.appendChild(p({style:{fontSize:'14px',color:C.textM,marginTop:'4px',fontFamily:SS}},'Patterns from your reflections'));
   sc.appendChild(hdr);
-
   const body=d({style:{flex:'1',overflowY:'auto',padding:'24px 20px 110px',background:C.bg}});
   const sEl=document.createElement('style');
   sEl.textContent=`@keyframes fU{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`;
   document.head.appendChild(sEl);
-
-  // Insight cards — white with dark circle icon
   [{icon:'◇',title:'Recurring themes',desc:state.mem.length>=2?`You often return to "${state.mem.slice(-1)[0].key.replace(/_/g,' ')}".`:'Keep reflecting — patterns emerge after a few sessions.',done:state.mem.length>=2},
    {icon:'◎',title:'Reflection streak',desc:'Consistency builds real clarity.',done:true},
    {icon:'◎',title:'Memory growth',desc:state.mem.length>0?`Aevi holds ${state.mem.length} ${state.mem.length===1?'memory':'memories'} about you.`:'Start chatting to build memory.',done:state.mem.length>0},
   ].forEach((item,i)=>{
-    const c2=d({style:{
-      display:'flex',alignItems:'center',gap:'16px',
-      padding:'18px 20px',borderRadius:'16px',marginBottom:'10px',
-      border:`1px solid ${C.border}`,background:C.card,
-      boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
-      animation:`fU .3s ease forwards`,animationDelay:`${i*0.08}s`,opacity:'0',
-    }});
-    const ico=d({style:{
-      width:'40px',height:'40px',borderRadius:'50%',flexShrink:'0',
-      background:item.done?C.dark:'rgba(28,43,58,0.07)',
-      display:'flex',alignItems:'center',justifyContent:'center',
-      fontSize:'16px',color:item.done?'#FFFFFF':C.textM,
-    }},item.done?'✓':item.icon);
-    const txt=d({style:{flex:'1'}});
-    txt.appendChild(p({style:{fontSize:'15px',fontWeight:'600',color:C.dark,marginBottom:'3px',fontFamily:SS}},item.title));
-    txt.appendChild(p({style:{fontSize:'13px',color:C.textM,lineHeight:'1.5',fontFamily:SS}},item.desc));
-    c2.append(ico,txt);body.appendChild(c2);
+    const c2=d({style:{display:'flex',alignItems:'center',gap:'16px',padding:'18px 20px',borderRadius:'16px',marginBottom:'10px',border:`1px solid ${C.border}`,background:C.card,boxShadow:'0 1px 4px rgba(0,0,0,0.04)',animation:`fU .3s ease forwards`,animationDelay:`${i*0.08}s`,opacity:'0'}});
+    c2.append(d({style:{width:'40px',height:'40px',borderRadius:'50%',flexShrink:'0',background:item.done?C.dark:'rgba(28,43,58,0.07)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',color:item.done?'#FFF':C.textM}},item.done?'✓':item.icon),
+    (() => {const t=d({style:{flex:'1'}});t.appendChild(p({style:{fontSize:'15px',fontWeight:'600',color:C.dark,marginBottom:'3px',fontFamily:SS}},item.title));t.appendChild(p({style:{fontSize:'13px',color:C.textM,lineHeight:'1.5',fontFamily:SS}},item.desc));return t;})());
+    body.appendChild(c2);
   });
-
   body.appendChild(sectionLbl('Memory bank'));
-
   if(state.mem.length===0){
     const empty=d({style:{background:C.card,borderRadius:'16px',padding:'28px',textAlign:'center',border:`1px solid ${C.border}`}});
     empty.appendChild(p({style:{fontSize:'14px',color:C.textM,fontFamily:SS,lineHeight:'1.7',marginBottom:'16px'}},'Nothing saved yet. Have a conversation — Aevi will quietly remember what matters.'));
@@ -714,7 +641,7 @@ function insights(){
 }
 
 /* ══════════════════════════════
-   8. UPGRADE
+   UPGRADE
 ══════════════════════════════ */
 function upgrade(){
   const sc=d({class:'screen'});
@@ -722,27 +649,13 @@ function upgrade(){
   hdr.appendChild(b({onClick:()=>go('home','sL'),style:{width:'38px',height:'38px',borderRadius:'50%',background:C.card,border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',color:C.dark,marginBottom:'16px',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}},'←'));
   hdr.appendChild(h(2,{style:{fontFamily:SF,fontSize:'44px',fontWeight:'500',color:C.dark,fontStyle:'italic'}},'Upgrade Aevi'));
   sc.appendChild(hdr);
-
   const body=d({style:{flex:'1',overflowY:'auto',padding:'24px 20px 48px',background:C.bg}});
-
   [{id:'free',name:'Free',price:'€0',period:'forever',features:['Basic chat','10 memories','5 msgs/day'],hot:false},
    {id:'plus',name:'Plus',price:'€9',period:'/month',features:['Unlimited chat','100 memories','Summaries'],hot:true},
    {id:'pro',name:'Pro',price:'€19',period:'/month',features:['Everything in Plus','Unlimited memory','Priority AI'],hot:false},
   ].forEach(plan=>{
-    const pc=d({style:{
-      padding:'22px',borderRadius:'18px',
-      border:plan.hot?`2px solid ${C.dark}`:`1px solid ${C.border}`,
-      background:C.card,marginBottom:'12px',
-      position:'relative',
-      boxShadow:plan.hot?'0 4px 24px rgba(28,43,58,0.12)':'0 1px 4px rgba(0,0,0,0.04)',
-    }});
-    if(plan.hot){
-      pc.appendChild(d({style:{
-        position:'absolute',top:'-13px',left:'50%',transform:'translateX(-50%)',
-        background:C.dark,color:'#FFFFFF',fontSize:'11px',padding:'4px 16px',
-        borderRadius:'100px',fontFamily:SS,fontWeight:'600',letterSpacing:'.04em',whiteSpace:'nowrap',
-      }},'Most popular'));
-    }
+    const pc=d({style:{padding:'22px',borderRadius:'18px',border:plan.hot?`2px solid ${C.dark}`:`1px solid ${C.border}`,background:C.card,marginBottom:'12px',position:'relative',boxShadow:plan.hot?'0 4px 24px rgba(28,43,58,0.12)':'0 1px 4px rgba(0,0,0,0.04)'}});
+    if(plan.hot)pc.appendChild(d({style:{position:'absolute',top:'-13px',left:'50%',transform:'translateX(-50%)',background:C.dark,color:'#FFF',fontSize:'11px',padding:'4px 16px',borderRadius:'100px',fontFamily:SS,fontWeight:'600',letterSpacing:'.04em',whiteSpace:'nowrap'}},'Most popular'));
     const top=d({style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'16px'}});
     top.appendChild(s({style:{fontFamily:SF,fontSize:'28px',fontStyle:'italic',fontWeight:'400',color:C.dark}},plan.name));
     const pr=d({style:{textAlign:'right'}});
@@ -757,7 +670,6 @@ function upgrade(){
     });
     body.appendChild(pc);
   });
-
   body.appendChild(d({style:{height:'8px'}}));
   body.appendChild(primBtn('Start Aevi Plus — €9/mo',()=>{}));
   body.appendChild(d({style:{height:'12px'}}));
