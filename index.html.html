@@ -4,43 +4,43 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
 <title>Aevi</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,300;1,400;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;background:#EAECF0;}
+html,body{height:100%;background:#E2DDD6;}
 body{display:flex;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;-webkit-font-smoothing:antialiased;}
-#app{width:100%;max-width:390px;min-height:100svh;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+#app{width:100%;max-width:390px;min-height:100svh;background:#EEEAE3;display:flex;flex-direction:column;overflow:hidden;position:relative;}
 input,textarea{outline:none;font-family:'Plus Jakarta Sans',sans-serif;}
 button{cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border:none;}
-.screen{flex:1;display:flex;flex-direction:column;min-height:100svh;}
-@keyframes sR{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:translateX(0)}}
-@keyframes sL{from{opacity:0;transform:translateX(-32px)}to{opacity:1;transform:translateX(0)}}
+.screen{flex:1;display:flex;flex-direction:column;min-height:100svh;background:#EEEAE3;}
+@keyframes sR{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+@keyframes sL{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
 @keyframes fI{from{opacity:0}to{opacity:1}}
-@keyframes fU{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-@keyframes pulse{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes dotP{0%,100%{opacity:.25;transform:scale(.65)}50%{opacity:1;transform:scale(1)}}
+@keyframes fU{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes breathe{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.8;transform:scale(1.06)}}
+@keyframes dotP{0%,100%{opacity:.2;transform:scale(.6)}50%{opacity:1;transform:scale(1)}}
+input::placeholder{color:#BABCBF;}
+textarea::placeholder{color:#BABCBF;}
 ::-webkit-scrollbar{width:0;}
 </style>
 </head>
 <body><div id="app"></div>
 <script>
-/* ── PALETTE ── */
+/* ── PALETTE from Figma ── */
 const C={
-  white:'#FFFFFF',
-  bg:'#F9FAFB',
-  border:'#E5E7EB',
-  borderLight:'#F3F4F6',
-  text:'#0D1117',
-  textS:'#374151',
+  bg:'#EEEAE3',        // warm cream
+  card:'#FFFFFF',       // white cards
+  border:'#E8E4DC',     // card borders
+  dark:'#1C2B3A',       // deep navy — headings, buttons, orb
+  darkM:'rgba(28,43,58,0.55)', // muted dark
+  darkH:'rgba(28,43,58,0.35)', // hint dark
+  text:'#1C2B3A',
+  textS:'#4A5568',
   textM:'#6B7280',
   textH:'#9CA3AF',
-  in:'#6366F1',
-  inD:'#4338CA',
-  inBg:'#EEF2FF',
-  inBd:'#C7D2FE',
-  green:'#10B981',
+  green:'#4CAF80',
+  selected:'#1C2B3A',
 };
 const SF="'Cormorant Garamond',Georgia,serif";
 const SS="'Plus Jakarta Sans',sans-serif";
@@ -60,32 +60,27 @@ async function save(k,v){try{await window.storage?.set(k,JSON.stringify(v))}catc
 async function init(){
   const[u,m,msgs]=await Promise.all([load('av_u'),load('av_m'),load('av_msgs')]);
   if(u){state.user=u;state.screen='home';}
-  if(m)state.mem=m;
-  if(msgs)state.msgs=msgs;
+  if(m)state.mem=m;if(msgs)state.msgs=msgs;
   render('fI');
 }
 
 function go(s,dir){
-  if(!dir){
-    const pi=ORDER.indexOf(state.screen),ci=ORDER.indexOf(s);
-    dir=s==='welcome'?'sL':ci>pi?'sR':ci<pi?'sL':'fI';
-  }
+  if(!dir){const pi=ORDER.indexOf(state.screen),ci=ORDER.indexOf(s);dir=s==='welcome'?'sL':ci>pi?'sR':ci<pi?'sL':'fI';}
   state.screen=s;render(dir);window.scrollTo(0,0);
 }
 
 function render(dir='sR'){
   const app=document.getElementById('app');
   const screens={welcome,signup,onboarding,persona,home,chat,insights,upgrade};
-  const el=screens[state.screen]?.();
-  if(!el)return;
-  el.style.animation=`${dir} .26s cubic-bezier(.4,0,.2,1) forwards`;
-  app.innerHTML='';app.appendChild(el);
+  const e=screens[state.screen]?.();
+  if(!e)return;
+  e.style.animation=`${dir} .24s cubic-bezier(.4,0,.2,1) forwards`;
+  app.innerHTML='';app.appendChild(e);
 }
 
-/* ── ELEMENT HELPERS ── */
-function el(tag,attrs,...kids){
+function el(tag,a,...kids){
   const e=document.createElement(tag);
-  for(const[k,v]of Object.entries(attrs||{})){
+  for(const[k,v]of Object.entries(a||{})){
     if(k==='style'&&typeof v==='object')Object.assign(e.style,v);
     else if(k.startsWith('on'))e.addEventListener(k.slice(2).toLowerCase(),v);
     else if(k==='class')e.className=v;
@@ -94,557 +89,531 @@ function el(tag,attrs,...kids){
   kids.forEach(c=>{if(c==null)return;e.appendChild(typeof c==='string'?document.createTextNode(c):c);});
   return e;
 }
-const D=(a,...c)=>el('div',a,...c);
-const B=(a,...c)=>el('button',a,...c);
-const P=(a,...c)=>el('p',a,...c);
-const H=(n,a,...c)=>el('h'+n,a,...c);
-const S=(a,...c)=>el('span',a,...c);
-const I=(a)=>el('input',a);
+const d=(a,...c)=>el('div',a,...c);
+const b=(a,...c)=>el('button',a,...c);
+const p=(a,...c)=>el('p',a,...c);
+const h=(n,a,...c)=>el('h'+n,a,...c);
+const s=(a,...c)=>el('span',a,...c);
+const inp=(a)=>el('input',a);
 
-/* ── COMPONENTS ── */
-function backBtn(to,dir='sL'){
-  return B({onClick:()=>go(to,dir),style:{
-    width:'38px',height:'38px',borderRadius:'50%',
-    background:C.bg,border:`1px solid ${C.border}`,
+/* ── SHARED COMPONENTS ── */
+
+// Back button — circle with arrow
+function backBtn(to,light=false){
+  return b({onClick:()=>go(to,'sL'),style:{
+    width:'40px',height:'40px',borderRadius:'50%',
+    background:light?'rgba(255,255,255,0.12)':C.card,
+    border:`1px solid ${light?'rgba(255,255,255,0.2)':C.border}`,
     display:'flex',alignItems:'center',justifyContent:'center',
-    fontSize:'16px',color:C.text,marginBottom:'28px',flexShrink:'0',
-    transition:'background .15s',
+    fontSize:'16px',color:light?'rgba(255,255,255,0.8)':C.dark,
+    marginBottom:'32px',flexShrink:'0',
+    boxShadow:light?'none':'0 1px 3px rgba(0,0,0,0.06)',
   }},'←');
 }
 
-function primaryBtn(label,onClick){
-  const b=B({onClick,style:{
+// Primary button — from Figma: dark fill, rounded rect, arrow inside
+function primBtn(label,onClick){
+  const btn=b({onClick,style:{
     width:'100%',height:'56px',borderRadius:'16px',
-    background:C.text,color:C.white,
+    background:C.dark,color:'#FFFFFF',
     fontSize:'15px',fontWeight:'600',fontFamily:SS,
     display:'flex',alignItems:'center',justifyContent:'center',gap:'12px',
-    boxShadow:`0 8px 24px rgba(13,17,23,0.22)`,
-    transition:'transform .14s,box-shadow .14s',letterSpacing:'.01em',
+    boxShadow:'0 4px 20px rgba(28,43,58,0.22)',
+    transition:'transform .13s,box-shadow .13s',
+    letterSpacing:'.01em',
   }});
-  b.appendChild(S({},label));
-  b.appendChild(D({style:{
-    width:'28px',height:'28px',borderRadius:'8px',
-    background:'rgba(255,255,255,0.12)',
-    display:'flex',alignItems:'center',justifyContent:'center',
-    fontSize:'14px',color:C.white,
-  }},'→'));
-  b.addEventListener('mouseover',()=>{b.style.transform='translateY(-1px)';b.style.boxShadow='0 12px 32px rgba(13,17,23,0.3)';});
-  b.addEventListener('mouseout',()=>{b.style.transform='';b.style.boxShadow=`0 8px 24px rgba(13,17,23,0.22)`;});
-  return b;
+  btn.appendChild(s({style:{flex:'1',textAlign:'center'}},label));
+  btn.appendChild(d({style:{width:'32px',height:'32px',borderRadius:'10px',background:'rgba(255,255,255,0.1)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'15px',color:'rgba(255,255,255,0.8)',marginRight:'4px'}},'→'));
+  btn.addEventListener('mouseover',()=>{btn.style.transform='translateY(-1px)';btn.style.boxShadow='0 8px 28px rgba(28,43,58,0.28)';});
+  btn.addEventListener('mouseout',()=>{btn.style.transform='';btn.style.boxShadow='0 4px 20px rgba(28,43,58,0.22)';});
+  return btn;
 }
 
+// Ghost button — white bg, border
 function ghostBtn(label,onClick){
-  return B({onClick,style:{
-    width:'100%',height:'48px',borderRadius:'16px',
-    background:C.white,color:C.textS,
+  return b({onClick,style:{
+    width:'100%',height:'52px',borderRadius:'16px',
+    background:C.card,color:C.dark,
     fontSize:'14px',fontWeight:'500',fontFamily:SS,
     border:`1.5px solid ${C.border}`,
-    transition:'border-color .15s,background .15s',
+    boxShadow:'0 1px 3px rgba(0,0,0,0.04)',
+    transition:'all .14s',
   }},label);
 }
 
-function indigoChip(label){
-  return D({style:{
-    display:'inline-flex',alignItems:'center',gap:'6px',
-    padding:'5px 12px',borderRadius:'100px',
-    background:C.inBg,border:`1px solid ${C.inBd}`,
-  }},S({style:{fontSize:'10px',color:C.in,fontWeight:'600',letterSpacing:'.04em'}},label));
+// White card
+function card(style={}){
+  return d({style:{background:C.card,borderRadius:'16px',border:`1px solid ${C.border}`,boxShadow:'0 1px 4px rgba(0,0,0,0.04)',...style}});
 }
 
+// Section label
+function sectionLbl(text){
+  return p({style:{fontSize:'11px',fontWeight:'600',color:C.textH,letterSpacing:'.08em',textTransform:'uppercase',marginBottom:'12px',fontFamily:SS}},text);
+}
+
+// Bottom nav — from Figma: white bg, icons + labels, active has bg highlight
 function navBar(active){
-  const nav=D({style:{
+  const nav=d({style:{
     position:'fixed',bottom:'0',left:'50%',transform:'translateX(-50%)',
     width:'100%',maxWidth:'390px',
-    background:'rgba(255,255,255,0.94)',
+    background:'rgba(238,234,227,0.95)',
     backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',
-    borderTop:`1px solid ${C.borderLight}`,
-    display:'flex',padding:'8px 8px 24px',zIndex:'20',gap:'2px',
+    borderTop:`1px solid ${C.border}`,
+    display:'flex',padding:'8px 8px 26px',zIndex:'20',
   }});
-  [['⌂','Home','home'],['✦','Chat','chat'],['◎','Insights','insights'],['↑','Upgrade','upgrade']].forEach(([icon,lbl,s])=>{
-    const isA=active===s;
-    const b=B({onClick:()=>go(s,'fI'),style:{
+  const icons={home:'⌂',chat:'✦',insights:'◎',upgrade:'↑'};
+  ['home','chat','insights','upgrade'].forEach(sc=>{
+    const isA=active===sc;
+    const lbl=sc.charAt(0).toUpperCase()+sc.slice(1);
+    const btn=b({onClick:()=>go(sc,'fI'),style:{
       flex:'1',display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',
-      background:isA?C.inBg:'transparent',
-      borderRadius:'12px',padding:'8px 4px',
-      transition:'all .18s',
+      background:isA?'rgba(28,43,58,0.08)':'transparent',
+      borderRadius:'12px',padding:'8px 4px',transition:'all .18s',
     }},
-    S({style:{fontSize:'18px',color:isA?C.in:C.textH,transition:'color .18s'}},(icon)),
-    S({style:{fontSize:'10px',color:isA?C.in:C.textH,fontWeight:isA?'600':'400',letterSpacing:'.02em'}},(lbl))
+    s({style:{fontSize:'18px',color:isA?C.dark:C.textH,transition:'color .18s'}},icons[sc]),
+    s({style:{fontSize:'10px',color:isA?C.dark:C.textH,fontWeight:isA?'600':'400',fontFamily:SS}},lbl)
     );
-    nav.appendChild(b);
+    nav.appendChild(btn);
   });
   return nav;
 }
 
-function progBar(step,total=3){
-  const w=D({style:{display:'flex',gap:'6px',alignItems:'center'}});
-  for(let i=0;i<total;i++){
-    w.appendChild(D({style:{
-      height:'3px',borderRadius:'2px',transition:'all .3s',
-      width:i===step?'28px':'8px',
-      background:i===step?C.in:C.border,
-    }}));
-  }
+// Progress dots
+function progDots(cur,total=3){
+  const w=d({style:{display:'flex',gap:'6px',alignItems:'center'}});
+  for(let i=0;i<total;i++)w.appendChild(d({style:{height:'4px',borderRadius:'2px',transition:'all .3s',width:i===cur?'28px':'8px',background:i===cur?C.dark:'rgba(28,43,58,0.2)'}}));
   return w;
 }
 
-/* ── WELCOME ── */
+/* ══════════════════════════════
+   1. WELCOME
+══════════════════════════════ */
 function welcome(){
-  const s=D({class:'screen',style:{justifyContent:'space-between',overflow:'hidden',position:'relative'}});
+  const sc=d({class:'screen',style:{overflow:'hidden',position:'relative',justifyContent:'space-between'}});
 
-  // subtle grid bg decoration
-  const grid=D({style:{
-    position:'absolute',top:'0',left:'0',right:'0',height:'55%',
-    backgroundImage:`linear-gradient(${C.borderLight} 1px,transparent 1px),linear-gradient(90deg,${C.borderLight} 1px,transparent 1px)`,
-    backgroundSize:'32px 32px',
-    maskImage:'linear-gradient(180deg,rgba(0,0,0,.06) 0%,transparent 80%)',
-    WebkitMaskImage:'linear-gradient(180deg,rgba(0,0,0,.06) 0%,transparent 80%)',
-    pointerEvents:'none',zIndex:'0',
-  }});
-  s.appendChild(grid);
+  // Subtle radial glow behind orb
+  sc.appendChild(d({style:{position:'absolute',top:'60px',left:'50%',transform:'translateX(-50%)',width:'280px',height:'280px',borderRadius:'50%',background:'radial-gradient(circle,rgba(28,43,58,0.05) 0%,transparent 70%)',pointerEvents:'none'}}));
 
-  const hero=D({style:{flex:'1',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'100px 32px 40px',textAlign:'center',position:'relative',zIndex:'1'}});
+  const hero=d({style:{flex:'1',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'80px 32px 40px',textAlign:'center'}});
 
-  // Orb
-  const orbW=D({style:{position:'relative',width:'96px',height:'96px',margin:'0 auto 36px'}});
-  orbW.appendChild(D({style:{position:'absolute',inset:'-14px',borderRadius:'50%',border:'1px solid rgba(99,102,241,0.12)',animation:'pulse 3s ease-in-out infinite'}}));
-  orbW.appendChild(D({style:{position:'absolute',inset:'-26px',borderRadius:'50%',border:'1px dashed rgba(99,102,241,0.06)',animation:'spin 22s linear infinite'}}));
-  const orb=D({style:{
+  // Orb — dark navy circle, sparkle icon, breathing rings
+  const orbW=d({style:{position:'relative',width:'96px',height:'96px',margin:'0 auto 36px'}});
+  orbW.appendChild(d({style:{position:'absolute',inset:'-14px',borderRadius:'50%',border:'1px solid rgba(28,43,58,0.07)',animation:'breathe 3.5s ease-in-out infinite'}}));
+  const orb=d({style:{
     width:'100%',height:'100%',borderRadius:'50%',
-    background:C.text,
+    background:`radial-gradient(135deg at 35% 35%, #2D3E50, ${C.dark})`,
     display:'flex',alignItems:'center',justifyContent:'center',
-    fontSize:'34px',color:C.white,
-    boxShadow:`0 16px 48px rgba(13,17,23,0.28),0 0 0 1px rgba(255,255,255,0.08) inset`,
-    animation:'float 6s ease-in-out infinite',
-    position:'relative',
+    fontSize:'36px',color:'rgba(255,255,255,0.9)',
+    boxShadow:'0 16px 48px rgba(28,43,58,0.3)',
+    animation:'float 5.5s ease-in-out infinite',
   }},'✦');
-  // indigo accent dot
-  const dot=D({style:{position:'absolute',bottom:'6px',right:'6px',width:'14px',height:'14px',borderRadius:'50%',background:C.in,border:`2px solid ${C.white}`,boxShadow:`0 2px 8px rgba(99,102,241,0.5)`}});
-  orb.appendChild(dot);
   orbW.appendChild(orb);
   hero.appendChild(orbW);
 
-  hero.appendChild(H(1,{style:{fontFamily:SF,fontSize:'64px',fontWeight:'400',fontStyle:'italic',color:C.text,letterSpacing:'-.03em',lineHeight:'.95',marginBottom:'14px'}},'Aevi'));
-  hero.appendChild(P({style:{fontFamily:SF,fontSize:'18px',fontStyle:'italic',color:C.textM,lineHeight:'1.6',maxWidth:'220px',margin:'0 auto'}},'Your private second mind'));
+  hero.appendChild(h(1,{style:{fontFamily:SF,fontSize:'72px',fontStyle:'italic',fontWeight:'400',color:C.dark,letterSpacing:'-.04em',lineHeight:'.88',marginBottom:'14px'}},'Aevi'));
+  hero.appendChild(p({style:{fontFamily:SS,fontSize:'16px',fontWeight:'400',color:C.textM,lineHeight:'1.6',marginBottom:'32px'}},'Your private second mind'));
 
-  // feature pills
-  const pills=D({style:{display:'flex',gap:'8px',justifyContent:'center',flexWrap:'wrap',marginTop:'28px'}});
+  // Feature pills — from Figma: white bg, border, rounded pill
+  const pills=d({style:{display:'flex',gap:'8px',justifyContent:'center',flexWrap:'wrap'}});
   ['Remembers you','Thinks with you','Stays private'].forEach(t=>{
-    pills.appendChild(D({style:{padding:'6px 14px',borderRadius:'100px',background:C.bg,border:`1px solid ${C.border}`,fontSize:'11px',color:C.textM,fontWeight:'500',fontFamily:SS,letterSpacing:'.01em'}},t));
+    pills.appendChild(d({style:{
+      padding:'8px 16px',borderRadius:'100px',
+      background:C.card,border:`1px solid ${C.border}`,
+      fontSize:'12px',color:C.dark,fontWeight:'500',fontFamily:SS,
+      boxShadow:'0 1px 3px rgba(0,0,0,0.04)',
+    }},t));
   });
   hero.appendChild(pills);
-  s.appendChild(hero);
+  sc.appendChild(hero);
 
-  const bottom=D({style:{padding:'0 28px 52px',position:'relative',zIndex:'1',display:'flex',flexDirection:'column',gap:'12px'}});
-  bottom.appendChild(primaryBtn('Begin your journey',()=>go('signup','sR')));
-  bottom.appendChild(ghostBtn('Sign in to your account',()=>go('home','sR')));
-  s.appendChild(bottom);
-  return s;
+  const bottom=d({style:{padding:'0 24px 48px',display:'flex',flexDirection:'column',gap:'10px'}});
+  bottom.appendChild(primBtn('Begin your journey',()=>go('signup','sR')));
+  bottom.appendChild(ghostBtn('I already have an account',()=>go('home','sR')));
+  sc.appendChild(bottom);
+  return sc;
 }
 
-/* ── SIGNUP ── */
+/* ══════════════════════════════
+   2. SIGN UP
+══════════════════════════════ */
 function signup(){
-  const s=D({class:'screen',style:{overflowY:'auto'}});
-  const wrap=D({style:{padding:'60px 28px 48px',display:'flex',flexDirection:'column',flex:'1'}});
+  const sc=d({class:'screen',style:{overflowY:'auto'}});
+  const wrap=d({style:{padding:'60px 24px 48px',display:'flex',flexDirection:'column',flex:'1'}});
   wrap.appendChild(backBtn('welcome'));
 
-  wrap.appendChild(indigoChip('CREATE ACCOUNT'));
-  wrap.appendChild(D({style:{height:'12px'}}));
-  wrap.appendChild(H(2,{style:{fontFamily:SF,fontSize:'40px',fontStyle:'italic',color:C.text,lineHeight:'1.1',marginBottom:'8px',fontWeight:'400'}},'Your private\nspace awaits'));
-  wrap.appendChild(P({style:{fontSize:'14px',color:C.textM,lineHeight:'1.65',marginBottom:'36px',fontFamily:SS}},'Everything you share stays between you and Aevi.'));
+  // Large serif heading — exactly as Figma
+  wrap.appendChild(h(2,{style:{fontFamily:SF,fontSize:'52px',fontWeight:'500',color:C.dark,lineHeight:'1.0',marginBottom:'10px'}},'Create your\nprivate space'));
+  wrap.appendChild(p({style:{fontSize:'15px',color:C.textM,lineHeight:'1.6',marginBottom:'40px',fontFamily:SS}},'Your thoughts stay here. Always.'));
 
   let nV='',eV='',pV='';
-  [['Full name','text','What should I call you?',v=>nV=v],
-   ['Email address','email','you@example.com',v=>eV=v],
-   ['Password','password','Create a password',v=>pV=v]].forEach(([lbl,type,ph,cb])=>{
-    const fw=D({style:{marginBottom:'20px'}});
-    fw.appendChild(P({style:{fontSize:'12px',color:C.textM,fontWeight:'600',letterSpacing:'.06em',textTransform:'uppercase',marginBottom:'8px',fontFamily:SS}},lbl));
-    const i=I({type,placeholder:ph,style:{
-      width:'100%',padding:'15px 18px',
-      borderRadius:'14px',border:`1.5px solid ${C.border}`,
-      background:C.bg,color:C.text,fontSize:'15px',fontFamily:SS,
-      transition:'border-color .2s,box-shadow .2s,background .2s',
+  [['YOUR NAME','text','What should I call you?',v=>nV=v],
+   ['EMAIL','email','you@example.com',v=>eV=v],
+   ['PASSWORD','password','••••••••',v=>pV=v]].forEach(([lbl,type,ph,cb])=>{
+    const fw=d({style:{marginBottom:'20px'}});
+    fw.appendChild(p({style:{fontSize:'11px',color:C.textM,fontWeight:'600',letterSpacing:'.09em',textTransform:'uppercase',marginBottom:'8px',fontFamily:SS}},lbl));
+    const i=inp({type,placeholder:ph,style:{
+      width:'100%',padding:'16px 18px',borderRadius:'14px',
+      border:`1px solid ${C.border}`,background:C.card,
+      color:C.dark,fontSize:'15px',fontFamily:SS,
+      boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
+      transition:'border-color .18s,box-shadow .18s',
     }});
-    i.addEventListener('focus',()=>{i.style.borderColor=C.in;i.style.boxShadow=`0 0 0 3px rgba(99,102,241,0.1)`;i.style.background=C.white;});
-    i.addEventListener('blur',()=>{i.style.borderColor=C.border;i.style.boxShadow='none';i.style.background=C.bg;});
+    i.addEventListener('focus',()=>{i.style.borderColor=C.dark;i.style.boxShadow=`0 0 0 3px rgba(28,43,58,0.08)`;});
+    i.addEventListener('blur',()=>{i.style.borderColor=C.border;i.style.boxShadow='0 1px 4px rgba(0,0,0,0.04)';});
     i.addEventListener('input',e=>cb(e.target.value));
     fw.appendChild(i);wrap.appendChild(fw);
   });
 
-  wrap.appendChild(D({style:{flex:'1',minHeight:'16px'}}));
-  wrap.appendChild(primaryBtn('Create account',()=>{if(nV.trim()){state.user.name=nV.trim();go('onboarding','sR');}}));
-  wrap.appendChild(D({style:{height:'12px'}}));
-  const note=P({style:{textAlign:'center',fontSize:'12px',color:C.textH,fontFamily:SS,lineHeight:'1.5'}});
-  note.innerHTML='By continuing you agree to our <span style="color:'+C.in+';text-decoration:underline;cursor:pointer">Privacy Policy</span>';
+  wrap.appendChild(d({style:{flex:'1',minHeight:'24px'}}));
+  wrap.appendChild(primBtn('Continue',()=>{if(nV.trim()){state.user.name=nV.trim();go('onboarding','sR');}}));
+  wrap.appendChild(d({style:{height:'14px'}}));
+  const note=p({style:{textAlign:'center',fontSize:'12px',color:C.textH,fontFamily:SS}});
+  note.innerHTML=`By continuing you agree to our <span style="color:${C.dark};text-decoration:underline;cursor:pointer">Privacy Policy</span>`;
   wrap.appendChild(note);
-  s.appendChild(wrap);
-  return s;
+  sc.appendChild(wrap);return sc;
 }
 
-/* ── ONBOARDING ── */
+/* ══════════════════════════════
+   3. ONBOARDING — Goal selection
+══════════════════════════════ */
 function onboarding(){
-  const s=D({class:'screen',style:{overflowY:'auto'}});
-  const wrap=D({style:{padding:'60px 28px 48px',display:'flex',flexDirection:'column',flex:'1'}});
+  const sc=d({class:'screen',style:{overflowY:'auto'}});
+  const wrap=d({style:{padding:'60px 24px 48px',display:'flex',flexDirection:'column',flex:'1'}});
   wrap.appendChild(backBtn('signup'));
-  wrap.appendChild(indigoChip('STEP 1 OF 2'));
-  wrap.appendChild(D({style:{height:'12px'}}));
-  wrap.appendChild(H(2,{style:{fontFamily:SF,fontSize:'38px',fontStyle:'italic',color:C.text,lineHeight:'1.1',marginBottom:'8px',fontWeight:'400'}},'What brings\nyou here?'));
-  wrap.appendChild(P({style:{fontSize:'14px',color:C.textM,lineHeight:'1.65',marginBottom:'32px',fontFamily:SS}},"I'll personalise every conversation around your main goal."));
+
+  wrap.appendChild(h(2,{style:{fontFamily:SF,fontSize:'52px',fontWeight:'500',color:C.dark,lineHeight:'1.0',marginBottom:'10px'}},'What brings\nyou here?'));
+  wrap.appendChild(p({style:{fontSize:'15px',color:C.textM,lineHeight:'1.6',marginBottom:'32px',fontFamily:SS}},"I'll shape how I think around your goal."));
 
   let sel='';
   const goals=[
-    {id:'reflect',icon:'◎',label:'Self-reflection',sub:'Process thoughts, understand yourself deeply'},
-    {id:'decide',icon:'⊙',label:'Better decisions',sub:'Think through choices with clarity and focus'},
-    {id:'create',icon:'✦',label:'Creative writing',sub:'Turn raw ideas into polished, compelling content'},
-    {id:'journal',icon:'◇',label:'Daily journaling',sub:'Build a meaningful, consistent reflection habit'},
+    {id:'reflect',icon:'◎',label:'Self-reflection',sub:'Process thoughts and understand myself'},
+    {id:'decide',icon:'⊙',label:'Better decisions',sub:'Think through choices with clarity'},
+    {id:'create',icon:'✦',label:'Creative writing',sub:'Turn raw ideas into polished content'},
+    {id:'journal',icon:'◇',label:'Daily journaling',sub:'Build a consistent reflection habit'},
   ];
 
   const cards=goals.map(g=>{
-    const card=B({style:{
-      width:'100%',padding:'18px 20px',borderRadius:'18px',
-      border:`1.5px solid ${C.border}`,background:C.white,
-      textAlign:'left',marginBottom:'10px',
+    const card=b({style:{
+      width:'100%',padding:'18px 20px',
+      borderRadius:'16px',
+      border:`1px solid ${C.border}`,
+      background:C.card,textAlign:'left',marginBottom:'10px',
       display:'flex',alignItems:'center',gap:'16px',
-      boxShadow:'none',transition:'all .16s',
+      boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
+      transition:'all .15s',
     }});
-    const iconBox=D({style:{width:'46px',height:'46px',borderRadius:'14px',background:C.bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'20px',color:C.textM,flexShrink:'0',transition:'all .16s'}},g.icon);
-    const txt=D({style:{flex:'1',textAlign:'left'}});
-    txt.appendChild(D({style:{fontSize:'15px',fontWeight:'600',color:C.text,marginBottom:'4px',fontFamily:SS}},g.label));
-    txt.appendChild(D({style:{fontSize:'12px',color:C.textM,lineHeight:'1.5',fontFamily:SS}},g.sub));
-    const chk=D({style:{width:'22px',height:'22px',borderRadius:'50%',border:`2px solid ${C.border}`,flexShrink:'0',transition:'all .16s',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',color:'transparent'}});
-    card.append(iconBox,txt,chk);
+    const ico=d({style:{
+      width:'48px',height:'48px',borderRadius:'14px',
+      background:'#F4F1EB',border:`1px solid ${C.border}`,
+      display:'flex',alignItems:'center',justifyContent:'center',
+      fontSize:'20px',color:C.textM,flexShrink:'0',transition:'all .15s',
+    }},g.icon);
+    const txt=d({style:{flex:'1'}});
+    txt.appendChild(d({style:{fontSize:'15px',fontWeight:'600',color:C.dark,marginBottom:'3px',fontFamily:SS}},g.label));
+    txt.appendChild(d({style:{fontSize:'13px',color:C.textM,lineHeight:'1.4',fontFamily:SS}},g.sub));
+    const chk=d({style:{
+      width:'24px',height:'24px',borderRadius:'50%',
+      border:`1.5px solid ${C.border}`,flexShrink:'0',
+      transition:'all .15s',display:'flex',alignItems:'center',justifyContent:'center',
+      fontSize:'12px',color:'transparent',
+    }});
+    card.append(ico,txt,chk);
     card.addEventListener('click',()=>{
       sel=g.id;
       cards.forEach(c=>{
-        c.style.border=`1.5px solid ${C.border}`;c.style.background=C.white;c.style.boxShadow='none';
-        c.firstChild.style.background=C.bg;c.firstChild.style.color=C.textM;
-        c.lastChild.style.background='transparent';c.lastChild.style.border=`2px solid ${C.border}`;c.lastChild.style.color='transparent';
+        c.style.border=`1px solid ${C.border}`;c.style.background=C.card;c.style.boxShadow='0 1px 4px rgba(0,0,0,0.04)';
+        c.firstChild.style.background='#F4F1EB';c.firstChild.style.color=C.textM;c.firstChild.style.border=`1px solid ${C.border}`;
+        c.lastChild.style.background='transparent';c.lastChild.style.border=`1.5px solid ${C.border}`;c.lastChild.style.color='transparent';c.lastChild.textContent='';
       });
-      card.style.border=`1.5px solid ${C.in}`;card.style.background=C.inBg;card.style.boxShadow=`0 0 0 3px rgba(99,102,241,0.08)`;
-      iconBox.style.background=C.in;iconBox.style.color=C.white;
-      chk.style.background=C.in;chk.style.border=`2px solid ${C.in}`;chk.style.color=C.white;chk.textContent='✓';
+      card.style.border=`1.5px solid ${C.dark}`;card.style.background='#FFFFFF';card.style.boxShadow=`0 4px 16px rgba(28,43,58,0.1)`;
+      ico.style.background=C.dark;ico.style.color='#FFFFFF';ico.style.border=`1px solid ${C.dark}`;
+      chk.style.background=C.dark;chk.style.border=`1.5px solid ${C.dark}`;chk.style.color='#FFFFFF';chk.textContent='✓';
     });
     return card;
   });
   cards.forEach(c=>wrap.appendChild(c));
-  wrap.appendChild(D({style:{flex:'1',minHeight:'16px'}}));
+  wrap.appendChild(d({style:{flex:'1',minHeight:'20px'}}));
 
-  const bot=D({style:{display:'flex',alignItems:'center',justifyContent:'space-between'}});
-  bot.appendChild(progBar(0));
-  const nb=B({onClick:()=>{if(sel){state.user.goal=sel;go('persona','sR');}},style:{
-    height:'52px',padding:'0 28px',borderRadius:'14px',
-    background:C.text,color:C.white,
+  const bot=d({style:{display:'flex',alignItems:'center',justifyContent:'space-between'}});
+  bot.appendChild(progDots(0));
+  const nb=b({onClick:()=>{if(sel){state.user.goal=sel;go('persona','sR');}},style:{
+    height:'52px',padding:'0 28px',borderRadius:'16px',
+    background:C.dark,color:'#FFFFFF',
     fontSize:'15px',fontWeight:'600',fontFamily:SS,
     display:'flex',alignItems:'center',gap:'10px',
-    boxShadow:`0 6px 20px rgba(13,17,23,0.2)`,
-    transition:'transform .14s',
-  }},'Next ',S({style:{fontSize:'16px'}},'→'));
-  bot.appendChild(nb);
-  wrap.appendChild(bot);
-  s.appendChild(wrap);
-  return s;
+    boxShadow:`0 4px 16px rgba(28,43,58,0.22)`,
+  }},'Next ',s({style:{fontSize:'16px'}},'→'));
+  bot.appendChild(nb);wrap.appendChild(bot);sc.appendChild(wrap);return sc;
 }
 
-/* ── PERSONA ── */
+/* ══════════════════════════════
+   4. PERSONA — Voice & topics
+══════════════════════════════ */
 function persona(){
-  const s=D({class:'screen',style:{overflowY:'auto'}});
-  const wrap=D({style:{padding:'60px 28px 48px',display:'flex',flexDirection:'column',flex:'1'}});
+  const sc=d({class:'screen',style:{overflowY:'auto'}});
+  const wrap=d({style:{padding:'60px 24px 48px',display:'flex',flexDirection:'column',flex:'1'}});
   wrap.appendChild(backBtn('onboarding'));
-  wrap.appendChild(indigoChip('STEP 2 OF 2'));
-  wrap.appendChild(D({style:{height:'12px'}}));
-  wrap.appendChild(H(2,{style:{fontFamily:SF,fontSize:'38px',fontStyle:'italic',color:C.text,lineHeight:'1.1',marginBottom:'8px',fontWeight:'400'}},'Shape\nmy voice'));
-  wrap.appendChild(P({style:{fontSize:'14px',color:C.textM,lineHeight:'1.65',marginBottom:'28px',fontFamily:SS}},'How should I sound when I talk to you?'));
+
+  wrap.appendChild(h(2,{style:{fontFamily:SF,fontSize:'52px',fontWeight:'500',color:C.dark,lineHeight:'1.0',marginBottom:'10px'}},'Shape\nmy voice'));
+  wrap.appendChild(p({style:{fontSize:'15px',color:C.textM,lineHeight:'1.6',marginBottom:'28px',fontFamily:SS}},'How should I sound when I talk to you?'));
 
   let tone='';const selT=[];
-  const tones=[{id:'warm',l:'Warm & Gentle'},{id:'direct',l:'Direct & Honest'},{id:'curious',l:'Curious & Deep'},{id:'calm',l:'Calm & Grounding'}];
-  const grid=D({style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'28px'}});
+  const grid=d({style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'28px'}});
+  const tones=[{id:'warm',l:'Warm & gentle'},{id:'direct',l:'Direct & honest'},{id:'curious',l:'Curious & deep'},{id:'calm',l:'Calm & grounding'}];
   const tBtns=tones.map(t=>{
-    const b=B({style:{
-      padding:'16px 12px',borderRadius:'16px',border:`1.5px solid ${C.border}`,
-      background:C.white,color:C.textM,fontSize:'13px',fontFamily:SS,fontWeight:'500',
-      transition:'all .15s',textAlign:'center',
+    const btn=b({style:{
+      padding:'18px 14px',borderRadius:'16px',
+      border:`1px solid ${C.border}`,background:C.card,
+      color:C.textS,fontSize:'14px',fontFamily:SS,fontWeight:'500',
+      boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
+      transition:'all .14s',textAlign:'center',
     }},t.l);
-    b.addEventListener('click',()=>{
+    btn.addEventListener('click',()=>{
       tone=t.id;
-      tBtns.forEach(x=>{x.style.border=`1.5px solid ${C.border}`;x.style.background=C.white;x.style.color=C.textM;});
-      b.style.border=`1.5px solid ${C.in}`;b.style.background=C.inBg;b.style.color=C.inDark;
+      tBtns.forEach(x=>{x.style.border=`1px solid ${C.border}`;x.style.background=C.card;x.style.color=C.textS;});
+      btn.style.border=`1.5px solid ${C.dark}`;btn.style.background=C.dark;btn.style.color='#FFFFFF';
     });
-    return b;
+    return btn;
   });
-  tBtns.forEach(b=>grid.appendChild(b));
-  wrap.appendChild(grid);
+  tBtns.forEach(b=>grid.appendChild(b));wrap.appendChild(grid);
 
-  wrap.appendChild(P({style:{fontSize:'13px',fontWeight:'600',color:C.text,marginBottom:'14px',fontFamily:SS}},'Topics you want to explore'));
-  const tagW=D({style:{display:'flex',flexWrap:'wrap',gap:'8px',marginBottom:'32px'}});
-  ['Work & career','Relationships','Creativity','Health','Purpose','Decisions','Emotions','Ideas','Growth','Writing'].forEach(t=>{
-    const tag=B({style:{
-      padding:'9px 16px',borderRadius:'100px',border:`1.5px solid ${C.border}`,
-      background:C.white,color:C.textM,fontSize:'12px',fontFamily:SS,fontWeight:'500',
-      transition:'all .15s',
+  wrap.appendChild(p({style:{fontSize:'15px',fontWeight:'600',color:C.dark,marginBottom:'14px',fontFamily:SS}},"Topics you'd like to explore"));
+  const tagW=d({style:{display:'flex',flexWrap:'wrap',gap:'8px',marginBottom:'40px'}});
+  ['Work & career','Relationships','Creativity','Health','Purpose','Decisions','Emotions','Ideas'].forEach(t=>{
+    const tg=b({style:{
+      padding:'9px 18px',borderRadius:'100px',
+      border:`1px solid ${C.border}`,background:C.card,
+      color:C.textS,fontSize:'13px',fontFamily:SS,fontWeight:'500',
+      boxShadow:'0 1px 3px rgba(0,0,0,0.04)',
+      transition:'all .14s',
     }},t);
-    tag.addEventListener('click',()=>{
-      if(selT.includes(t)){selT.splice(selT.indexOf(t),1);tag.style.border=`1.5px solid ${C.border}`;tag.style.background=C.white;tag.style.color=C.textM;}
-      else{selT.push(t);tag.style.border=`1.5px solid ${C.in}`;tag.style.background=C.inBg;tag.style.color=C.inDark;}
+    tg.addEventListener('click',()=>{
+      if(selT.includes(t)){selT.splice(selT.indexOf(t),1);tg.style.border=`1px solid ${C.border}`;tg.style.background=C.card;tg.style.color=C.textS;}
+      else{selT.push(t);tg.style.border=`1.5px solid ${C.dark}`;tg.style.background=C.dark;tg.style.color='#FFFFFF';}
     });
-    tagW.appendChild(tag);
+    tagW.appendChild(tg);
   });
   wrap.appendChild(tagW);
-  wrap.appendChild(D({style:{flex:'1',minHeight:'12px'}}));
+  wrap.appendChild(d({style:{flex:'1',minHeight:'12px'}}));
 
-  const bot=D({style:{display:'flex',alignItems:'center',justifyContent:'space-between'}});
-  bot.appendChild(progBar(1));
-  const nb=B({onClick:async()=>{
+  const bot=d({style:{display:'flex',alignItems:'center',justifyContent:'space-between'}});
+  bot.appendChild(progDots(2));
+  const nb=b({onClick:async()=>{
     if(!tone)return;
     state.user.tone=tone;state.user.topics=[...selT];
     await save('av_u',state.user);go('home','sR');
-  },style:{
-    height:'52px',padding:'0 28px',borderRadius:'14px',
-    background:C.text,color:C.white,fontSize:'15px',fontWeight:'600',fontFamily:SS,
-    display:'flex',alignItems:'center',gap:'10px',
-    boxShadow:`0 6px 20px rgba(13,17,23,0.2)`,
-  }},'Meet Aevi ',S({style:{fontSize:'16px'}},'→'));
-  bot.appendChild(nb);
-  wrap.appendChild(bot);
-  s.appendChild(wrap);
-  return s;
+  },style:{height:'52px',padding:'0 28px',borderRadius:'16px',background:C.dark,color:'#FFFFFF',fontSize:'15px',fontWeight:'600',fontFamily:SS,display:'flex',alignItems:'center',gap:'10px',boxShadow:`0 4px 16px rgba(28,43,58,0.22)`}},'Meet Aevi ',s({style:{fontSize:'16px'}},'→'));
+  bot.appendChild(nb);wrap.appendChild(bot);sc.appendChild(wrap);return sc;
 }
 
-/* ── HOME ── */
+/* ══════════════════════════════
+   5. HOME
+══════════════════════════════ */
 function home(){
-  const s=D({class:'screen'});
+  const sc=d({class:'screen'});
   const hour=new Date().getHours();
   const greet=hour<5?'Good night':hour<12?'Good morning':hour<17?'Good afternoon':'Good evening';
 
-  // Header
-  const hdr=D({style:{padding:'58px 24px 20px',borderBottom:`1px solid ${C.borderLight}`,background:C.white}});
-  const hrow=D({style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}});
-
-  const hLeft=D({});
-  hLeft.appendChild(P({style:{fontSize:'12px',color:C.textH,letterSpacing:'.03em',marginBottom:'4px',fontFamily:SS}},greet));
-  hLeft.appendChild(H(2,{style:{fontFamily:SF,fontSize:'32px',fontStyle:'italic',color:C.text,letterSpacing:'-.01em',fontWeight:'400',lineHeight:'1.1'}},(state.user.name||'Friend')));
-
-  const hRight=D({style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'8px'}});
-  hRight.appendChild(B({onClick:()=>go('upgrade','sR'),style:{
-    padding:'7px 14px',borderRadius:'100px',border:`1.5px solid ${C.inBd}`,
-    background:C.inBg,color:C.in,fontSize:'11px',fontFamily:SS,fontWeight:'600',
-  }},'✦  Free plan'));
-  hRight.appendChild(B({onClick:async()=>{
+  // Header — flat, no card
+  const hdr=d({style:{padding:'56px 24px 20px',borderBottom:`1px solid ${C.border}`,background:C.bg}});
+  const hrow=d({style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}});
+  const hL=d({});
+  hL.appendChild(p({style:{fontSize:'13px',color:C.textM,marginBottom:'4px',fontFamily:SS}},greet));
+  hL.appendChild(h(2,{style:{fontFamily:SF,fontSize:'38px',fontWeight:'500',color:C.dark,lineHeight:'1.0'}},(state.user.name||'Friend')));
+  const hR=d({style:{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'8px'}});
+  hR.appendChild(b({onClick:()=>go('upgrade','sR'),style:{
+    padding:'7px 16px',borderRadius:'100px',
+    background:C.card,border:`1px solid ${C.border}`,
+    color:C.dark,fontSize:'12px',fontFamily:SS,fontWeight:'600',
+    boxShadow:'0 1px 4px rgba(0,0,0,0.06)',
+  }},'Free'));
+  hR.appendChild(b({onClick:async()=>{
     await save('av_u',null);await save('av_m',null);await save('av_msgs',null);
-    state.user={name:'',goal:'',tone:'',topics:[]};state.mem=[];state.msgs=[];
-    go('welcome','sL');
-  },style:{background:'none',border:'none',fontSize:'11px',color:C.textH,fontFamily:SS,padding:'2px 0',textDecoration:'underline'}},'Sign out'));
-  hrow.append(hLeft,hRight);hdr.appendChild(hrow);
-  s.appendChild(hdr);
+    state.user={name:'',goal:'',tone:'',topics:[]};state.mem=[];state.msgs=[];go('welcome','sL');
+  },style:{background:'none',border:'none',fontSize:'12px',color:C.textH,fontFamily:SS,textDecoration:'underline'}},'Sign out'));
+  hrow.append(hL,hR);hdr.appendChild(hrow);sc.appendChild(hdr);
 
-  const body=D({style:{flex:'1',overflowY:'auto',padding:'24px 20px 110px'}});
+  const body=d({style:{flex:'1',overflowY:'auto',padding:'24px 20px 110px',background:C.bg}});
 
-  // Memory card — dark
+  // Memory card — white card with left accent border (exactly from Figma)
   if(state.mem.length>0){
-    const mc=D({style:{
-      background:C.text,borderRadius:'20px',
-      padding:'20px 22px',marginBottom:'24px',
-      position:'relative',overflow:'hidden',
+    const mc=d({style:{
+      background:C.card,borderRadius:'16px',
+      border:`1px solid ${C.border}`,
+      borderLeft:`3px solid ${C.dark}`,
+      padding:'18px 20px',marginBottom:'24px',
+      boxShadow:'0 1px 6px rgba(0,0,0,0.05)',
     }});
-    // indigo accent line
-    mc.appendChild(D({style:{position:'absolute',top:'0',left:'0',width:'100%',height:'3px',background:`linear-gradient(90deg,${C.in},transparent)`}}));
-    mc.appendChild(P({style:{fontSize:'10px',color:C.in,fontFamily:SS,letterSpacing:'.08em',marginBottom:'10px',fontWeight:'600'}},'✦  AEVI REMEMBERS'));
-    mc.appendChild(P({style:{fontFamily:SF,fontSize:'18px',fontStyle:'italic',color:C.white,lineHeight:'1.6'}},'"'+state.mem[state.mem.length-1].value+'"'));
+    mc.appendChild(p({style:{fontSize:'10px',color:C.textH,letterSpacing:'.09em',textTransform:'uppercase',marginBottom:'8px',fontFamily:SS,fontWeight:'600'}},'AEVI REMEMBERS'));
+    mc.appendChild(p({style:{fontFamily:SS,fontSize:'15px',color:C.dark,lineHeight:'1.6'}},'"'+state.mem[state.mem.length-1].value+'"'));
     body.appendChild(mc);
   }
 
-  // Start here
-  body.appendChild(P({style:{fontSize:'11px',color:C.textH,letterSpacing:'.07em',textTransform:'uppercase',marginBottom:'14px',fontWeight:'600',fontFamily:SS}},'Start here'));
+  body.appendChild(sectionLbl('Start here'));
 
-  // Prompt grid
-  const pgrid=D({style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'24px'}});
+  // Prompt cards — white cards, from Figma
+  const pgrid=d({style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'24px'}});
   const prompts=[
-    {q:"What's weighing on your mind?",featured:true,icon:'◉'},
-    {q:"Any decisions to think through?",featured:false,icon:'◎'},
-    {q:"Something you noticed today?",featured:false,icon:'◇'},
-    {q:"A feeling to explore?",featured:true,icon:'✦'},
+    {q:"What's weighing on your mind?",featured:true,sub:'→ Explore'},
+    {q:"Any decisions?",featured:false},
+    {q:"A feeling today?",featured:false},
   ];
-  prompts.forEach(({q,featured,icon})=>{
-    const pc=B({onClick:()=>go('chat','sR'),style:{
+  prompts.forEach(({q,featured,sub})=>{
+    const pc=b({onClick:()=>go('chat','sR'),style:{
       gridColumn:featured?'span 2':'span 1',
-      padding:featured?'20px 20px':'18px 16px',
-      borderRadius:'18px',border:`1.5px solid ${C.border}`,
-      background:C.white,textAlign:'left',
-      transition:'all .15s',
+      padding:featured?'20px':'18px 16px',
+      borderRadius:'16px',border:`1px solid ${C.border}`,
+      background:C.card,textAlign:'left',
       boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
+      transition:'all .14s',
     }});
-    pc.appendChild(D({style:{width:'32px',height:'32px',borderRadius:'10px',background:C.inBg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px',color:C.in,marginBottom:'10px'}},icon));
-    pc.appendChild(P({style:{fontSize:featured?'14px':'13px',color:C.text,lineHeight:'1.4',marginBottom:'8px',fontWeight:'500',fontFamily:SS}},q));
-    pc.appendChild(S({style:{fontSize:'11px',color:C.in,fontWeight:'600',fontFamily:SS}},'Explore →'));
-    pc.addEventListener('mouseover',()=>{pc.style.borderColor=C.in;pc.style.background=C.inBg;pc.style.transform='translateY(-1px)';pc.style.boxShadow=`0 4px 16px rgba(99,102,241,0.12)`;});
-    pc.addEventListener('mouseout',()=>{pc.style.borderColor=C.border;pc.style.background=C.white;pc.style.transform='';pc.style.boxShadow='0 1px 4px rgba(0,0,0,0.04)';});
+    pc.appendChild(p({style:{fontSize:featured?'15px':'13px',fontWeight:'600',color:C.dark,lineHeight:'1.4',marginBottom:sub?'8px':'0',fontFamily:SS}},q));
+    if(sub)pc.appendChild(s({style:{fontSize:'13px',color:C.textM,fontFamily:SS}},sub));
+    pc.addEventListener('mouseover',()=>{pc.style.borderColor=C.dark;pc.style.transform='translateY(-1px)';pc.style.boxShadow='0 4px 14px rgba(28,43,58,0.1)';});
+    pc.addEventListener('mouseout',()=>{pc.style.borderColor=C.border;pc.style.transform='';pc.style.boxShadow='0 1px 4px rgba(0,0,0,0.04)';});
     pgrid.appendChild(pc);
   });
   body.appendChild(pgrid);
 
-  // Stats row
-  body.appendChild(P({style:{fontSize:'11px',color:C.textH,letterSpacing:'.07em',textTransform:'uppercase',marginBottom:'14px',fontWeight:'600',fontFamily:SS}},'Your progress'));
-  const stats=D({style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'24px'}});
-  [{l:'Memories',v:state.mem.length,icon:'◎'},{l:'Days active',v:1,icon:'◇'}].forEach(stat=>{
-    const sc=D({style:{background:C.bg,borderRadius:'18px',padding:'20px 18px',border:`1px solid ${C.borderLight}`}});
-    sc.appendChild(P({style:{fontFamily:SF,fontSize:'44px',fontWeight:'400',color:C.text,lineHeight:'1'}},String(stat.v)));
-    sc.appendChild(P({style:{fontSize:'12px',color:C.textM,marginTop:'6px',fontFamily:SS}},stat.l));
-    stats.appendChild(sc);
+  // Stats — white cards
+  const stats=d({style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'20px'}});
+  [{l:'Memories',v:state.mem.length},{l:'Days active',v:1}].forEach(stat=>{
+    const sc2=d({style:{background:C.card,borderRadius:'16px',padding:'18px 16px',border:`1px solid ${C.border}`,boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}});
+    sc2.appendChild(p({style:{fontFamily:SF,fontSize:'48px',fontWeight:'400',color:C.dark,lineHeight:'1'}},String(stat.v)));
+    sc2.appendChild(p({style:{fontSize:'12px',color:C.textM,marginTop:'4px',fontFamily:SS}},stat.l));
+    stats.appendChild(sc2);
   });
   body.appendChild(stats);
 
-  // Streak
-  const streak=D({style:{background:C.bg,borderRadius:'20px',padding:'20px',border:`1px solid ${C.borderLight}`}});
-  const sRow=D({style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}});
-  sRow.appendChild(P({style:{fontSize:'13px',fontWeight:'600',color:C.text,fontFamily:SS}},'Reflection streak'));
-  sRow.appendChild(D({style:{padding:'4px 10px',borderRadius:'100px',background:C.inBg,border:`1px solid ${C.inBd}`}},S({style:{fontSize:'10px',color:C.in,fontWeight:'600',fontFamily:SS}},'7 days')));
-  streak.appendChild(sRow);
-  const days=D({style:{display:'flex',gap:'6px'}});
+  // Streak card
+  const streak=d({style:{background:C.card,borderRadius:'16px',padding:'18px',border:`1px solid ${C.border}`,boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}});
+  streak.appendChild(p({style:{fontSize:'14px',fontWeight:'600',color:C.dark,marginBottom:'14px',fontFamily:SS}},'Reflection streak'));
+  const days=d({style:{display:'flex',gap:'6px'}});
   const today=new Date().getDay();
-  ['M','T','W','T','F','S','S'].forEach((d,i)=>{
+  ['M','T','W','T','F','S','S'].forEach((day,i)=>{
     const isT=i===(today===0?6:today-1);
-    const dc=D({style:{flex:'1',display:'flex',flexDirection:'column',alignItems:'center',gap:'6px'}});
-    dc.appendChild(D({style:{
+    const dc=d({style:{flex:'1',display:'flex',flexDirection:'column',alignItems:'center',gap:'5px'}});
+    dc.appendChild(d({style:{
       width:'100%',aspectRatio:'1',borderRadius:'10px',
-      background:isT?C.text:'rgba(107,114,128,0.1)',
+      background:isT?C.dark:'rgba(28,43,58,0.07)',
       display:'flex',alignItems:'center',justifyContent:'center',
-    }},isT?S({style:{fontSize:'9px',color:C.in,fontWeight:'700'}},'✦'):''));
-    dc.appendChild(S({style:{fontSize:'9px',color:isT?C.text:C.textH,fontFamily:SS,fontWeight:isT?'600':'400'}},d));
+    }},isT?s({style:{fontSize:'10px',color:'#FFFFFF',fontWeight:'700',fontFamily:SS}},day):''));
+    if(!isT)dc.appendChild(s({style:{fontSize:'10px',color:C.textH,fontFamily:SS}},day));
     days.appendChild(dc);
   });
   streak.appendChild(days);body.appendChild(streak);
-  s.append(body,navBar('home'));
-  return s;
+  sc.append(body,navBar('home'));return sc;
 }
 
-/* ── CHAT ── */
+/* ══════════════════════════════
+   6. CHAT
+══════════════════════════════ */
 function chat(){
-  const s=D({class:'screen',style:{display:'flex',flexDirection:'column'}});
+  const sc=d({class:'screen',style:{display:'flex',flexDirection:'column'}});
 
   // Header
-  const hdr=D({style:{
-    padding:'52px 20px 16px',background:C.white,
-    borderBottom:`1px solid ${C.borderLight}`,flexShrink:'0',
+  const hdr=d({style:{
+    padding:'52px 20px 16px',background:C.bg,
+    borderBottom:`1px solid ${C.border}`,flexShrink:'0',
     display:'flex',flexDirection:'column',alignItems:'center',position:'relative',
   }});
-  hdr.appendChild(B({onClick:()=>go('home','sL'),style:{
-    position:'absolute',left:'20px',top:'58px',
-    width:'36px',height:'36px',borderRadius:'50%',
-    background:C.bg,border:`1px solid ${C.border}`,
+  hdr.appendChild(b({onClick:()=>go('home','sL'),style:{
+    position:'absolute',left:'20px',top:'56px',
+    width:'38px',height:'38px',borderRadius:'50%',
+    background:C.card,border:`1px solid ${C.border}`,
     display:'flex',alignItems:'center',justifyContent:'center',
-    fontSize:'16px',color:C.text,
+    fontSize:'16px',color:C.dark,boxShadow:'0 1px 4px rgba(0,0,0,0.06)',
   }},'←'));
 
-  const av=D({style:{
+  const av=d({style:{
     width:'52px',height:'52px',borderRadius:'50%',
-    background:C.text,
-    display:'flex',alignItems:'center',justifyContent:'center',
-    fontSize:'20px',color:C.white,
-    boxShadow:`0 6px 20px rgba(13,17,23,0.22)`,
+    background:C.dark,display:'flex',alignItems:'center',justifyContent:'center',
+    fontSize:'20px',color:'rgba(255,255,255,0.9)',
+    boxShadow:'0 6px 20px rgba(28,43,58,0.22)',
     marginBottom:'8px',position:'relative',
   }},'✦');
-  const onlineDot=D({style:{position:'absolute',bottom:'2px',right:'2px',width:'12px',height:'12px',borderRadius:'50%',background:C.green,border:`2px solid ${C.white}`}});
-  av.appendChild(onlineDot);
+  av.appendChild(d({style:{position:'absolute',bottom:'2px',right:'2px',width:'12px',height:'12px',borderRadius:'50%',background:C.green,border:`2px solid ${C.bg}`}}));
   hdr.appendChild(av);
-  hdr.appendChild(D({style:{fontSize:'16px',fontWeight:'600',color:C.text,fontFamily:SS,letterSpacing:'-.01em'}},'Aevi'));
-  hdr.appendChild(D({style:{fontSize:'12px',color:C.textM,fontFamily:SF,fontStyle:'italic',marginTop:'2px'}},'your second mind'));
-  s.appendChild(hdr);
+  hdr.appendChild(d({style:{fontSize:'16px',fontWeight:'600',color:C.dark,fontFamily:SS}},'Aevi'));
+  hdr.appendChild(d({style:{fontSize:'13px',color:C.textM,fontFamily:SS,marginTop:'2px'}},'your second mind'));
+  sc.appendChild(hdr);
 
-  const msgsArea=D({style:{flex:'1',overflowY:'auto',padding:'20px 16px 8px'}});
+  const msgsArea=d({style:{flex:'1',overflowY:'auto',padding:'20px 16px 8px',background:C.bg}});
 
   function renderMsgs(){
     msgsArea.innerHTML='';
     if(state.msgs.length===0){
-      const empty=D({style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'56vh',padding:'24px',textAlign:'center'}});
-      const ew=D({style:{position:'relative',width:'84px',height:'84px',margin:'0 auto 28px'}});
-      ew.appendChild(D({style:{position:'absolute',inset:'-12px',borderRadius:'50%',border:'1px solid rgba(99,102,241,0.12)',animation:'pulse 3s ease-in-out infinite'}}));
-      const orbE=D({style:{width:'100%',height:'100%',borderRadius:'50%',background:C.text,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'30px',color:C.white,boxShadow:`0 12px 36px rgba(13,17,23,0.22)`,animation:'float 6s ease-in-out infinite'}},'✦');
-      const dotE=D({style:{position:'absolute',bottom:'4px',right:'4px',width:'14px',height:'14px',borderRadius:'50%',background:C.in,border:`2px solid ${C.white}`}});
-      orbE.appendChild(dotE);ew.appendChild(orbE);
-      empty.appendChild(ew);
-      empty.appendChild(H(3,{style:{fontFamily:SF,fontSize:'30px',fontStyle:'italic',color:C.text,marginBottom:'10px',fontWeight:'400'}},"What's on your mind?"));
-      empty.appendChild(P({style:{fontSize:'14px',color:C.textM,lineHeight:'1.7',marginBottom:'32px',maxWidth:'240px',fontFamily:SS}},'A thought, a feeling, a decision — bring it here.'));
-      const pw=D({style:{display:'flex',flexDirection:'column',gap:'10px',width:'100%',maxWidth:'280px'}});
+      const empty=d({style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'56vh',padding:'24px',textAlign:'center'}});
+      const ew=d({style:{position:'relative',width:'84px',height:'84px',margin:'0 auto 28px'}});
+      ew.appendChild(d({style:{position:'absolute',inset:'-12px',borderRadius:'50%',border:'1px solid rgba(28,43,58,0.08)',animation:'breathe 3.5s ease-in-out infinite'}}));
+      const orbE=d({style:{width:'100%',height:'100%',borderRadius:'50%',background:C.dark,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'28px',color:'rgba(255,255,255,0.9)',boxShadow:'0 12px 36px rgba(28,43,58,0.2)',animation:'float 5.5s ease-in-out infinite'}},'✦');
+      ew.appendChild(orbE);empty.appendChild(ew);
+      empty.appendChild(h(3,{style:{fontFamily:SF,fontSize:'32px',color:C.dark,marginBottom:'10px',fontWeight:'400',fontStyle:'italic'}},"What's on your mind?"));
+      empty.appendChild(p({style:{fontSize:'14px',color:C.textM,lineHeight:'1.7',marginBottom:'32px',maxWidth:'240px',fontFamily:SS}},'A thought, a feeling, a decision — bring it here.'));
+      const pw=d({style:{display:'flex',flexDirection:'column',gap:'8px',width:'100%',maxWidth:'280px'}});
       ["I've been thinking about...","I need to decide...","Something's been bothering me...","I had an idea today..."].forEach(pr=>{
-        pw.appendChild(B({onClick:()=>{ta.value=pr;ta.dispatchEvent(new Event('input'));ta.focus();},style:{
-          background:C.bg,border:`1.5px solid ${C.border}`,
-          color:C.textS,borderRadius:'14px',padding:'13px 16px',
+        pw.appendChild(b({onClick:()=>{ta.value=pr;ta.dispatchEvent(new Event('input'));ta.focus();},style:{
+          background:C.card,border:`1px solid ${C.border}`,
+          color:C.dark,borderRadius:'14px',padding:'13px 16px',
           fontSize:'13px',fontFamily:SS,textAlign:'left',
-          transition:'all .15s',fontWeight:'500',
+          boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
+          transition:'all .14s',fontWeight:'500',
         }},pr));
       });
       empty.appendChild(pw);msgsArea.appendChild(empty);
     } else {
+      const sEl=document.createElement('style');
+      sEl.textContent=`@keyframes fU{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`;
+      document.head.appendChild(sEl);
       state.msgs.forEach((msg,idx)=>{
-        const wrap=D({style:{
-          display:'flex',flexDirection:msg.role==='user'?'row-reverse':'row',
-          gap:'10px',alignItems:'flex-end',marginBottom:'16px',
-          animation:`fU .24s ease forwards`,animationDelay:`${Math.min(idx,4)*0.04}s`,opacity:'0',
-        }});
-        if(msg.role==='assistant'){
-          wrap.appendChild(D({style:{
-            width:'30px',height:'30px',borderRadius:'50%',background:C.text,
-            display:'flex',alignItems:'center',justifyContent:'center',
-            fontSize:'11px',color:C.white,flexShrink:'0',
-            boxShadow:`0 2px 8px rgba(13,17,23,0.2)`,
-          }},'✦'));
+        const isU=msg.role==='user';
+        const wrap=d({style:{display:'flex',flexDirection:isU?'row-reverse':'row',gap:'10px',alignItems:'flex-end',marginBottom:'16px',animation:`fU .22s ease forwards`,animationDelay:`${Math.min(idx,4)*0.04}s`,opacity:'0'}});
+        if(!isU){
+          wrap.appendChild(d({style:{width:'30px',height:'30px',borderRadius:'50%',background:C.dark,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',color:'rgba(255,255,255,0.9)',flexShrink:'0',boxShadow:'0 2px 8px rgba(28,43,58,0.15)'}},'✦'));
         }
-        const inner=D({style:{maxWidth:'78%'}});
-        const senderLbl=D({style:{
-          fontSize:'10px',color:C.textH,marginBottom:'5px',
-          fontFamily:SS,textAlign:msg.role==='user'?'right':'left',
-          display:'flex',alignItems:'center',gap:'6px',
-          flexDirection:msg.role==='user'?'row-reverse':'row',
-        }});
-        senderLbl.appendChild(S({},msg.role==='user'?'You':'Aevi'));
-        senderLbl.appendChild(S({style:{opacity:'.7'}},new Date(msg.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})));
-        inner.appendChild(senderLbl);
-        const bubble=D({style:{
-          background:msg.role==='user'?C.text:C.bg,
-          border:msg.role==='user'?'none':`1.5px solid ${C.border}`,
-          borderRadius:msg.role==='user'?'20px 20px 4px 20px':'20px 20px 20px 4px',
-          padding:'14px 18px',
-          color:msg.role==='user'?C.white:C.text,
+        const inner=d({style:{maxWidth:'78%'}});
+        const lbl=d({style:{fontSize:'11px',color:C.textH,marginBottom:'4px',fontFamily:SS,display:'flex',alignItems:'center',gap:'6px',flexDirection:isU?'row-reverse':'row'}});
+        lbl.append(s({},isU?'You':'Aevi'),s({style:{opacity:'.7'}},new Date(msg.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})));
+        inner.appendChild(lbl);
+        const bubble=d({style:{
+          background:isU?C.dark:C.card,
+          border:isU?'none':`1px solid ${C.border}`,
+          borderRadius:isU?'20px 20px 4px 20px':'20px 20px 20px 4px',
+          padding:'13px 17px',color:isU?'#FFFFFF':C.dark,
           fontSize:'14px',lineHeight:'1.75',whiteSpace:'pre-wrap',fontFamily:SS,
-          boxShadow:msg.role==='user'?`0 4px 16px rgba(13,17,23,0.2)`:`0 1px 4px rgba(0,0,0,0.04)`,
+          boxShadow:isU?'0 4px 14px rgba(28,43,58,0.18)':'0 1px 4px rgba(0,0,0,0.05)',
         }},msg.content);
-        inner.appendChild(bubble);
-        wrap.appendChild(inner);
-        msgsArea.appendChild(wrap);
+        inner.appendChild(bubble);wrap.appendChild(inner);msgsArea.appendChild(wrap);
       });
       if(state.loading){
-        const wrap=D({style:{display:'flex',gap:'10px',alignItems:'flex-end',marginBottom:'16px'}});
-        wrap.appendChild(D({style:{width:'30px',height:'30px',borderRadius:'50%',background:C.text,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',color:C.white,flexShrink:'0'}},'✦'));
-        const dots=D({style:{background:C.bg,border:`1.5px solid ${C.border}`,borderRadius:'20px 20px 20px 4px',padding:'14px 18px',display:'flex',gap:'6px'}});
-        [0,1,2].forEach(i=>{const d=D({style:{width:'7px',height:'7px',borderRadius:'50%',background:C.in,animation:'dotP 1.2s ease-in-out infinite',animationDelay:i*0.2+'s'}});dots.appendChild(d);});
+        const wrap=d({style:{display:'flex',gap:'10px',alignItems:'flex-end',marginBottom:'16px'}});
+        wrap.appendChild(d({style:{width:'30px',height:'30px',borderRadius:'50%',background:C.dark,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'12px',color:'rgba(255,255,255,0.9)',flexShrink:'0'}},'✦'));
+        const dots=d({style:{background:C.card,border:`1px solid ${C.border}`,borderRadius:'20px 20px 20px 4px',padding:'13px 18px',display:'flex',gap:'6px',boxShadow:'0 1px 4px rgba(0,0,0,0.05)'}});
+        [0,1,2].forEach(i=>{const dot=d({style:{width:'7px',height:'7px',borderRadius:'50%',background:C.textM,animation:'dotP 1.2s ease-in-out infinite',animationDelay:i*0.2+'s'}});dots.appendChild(dot);});
         wrap.appendChild(dots);msgsArea.appendChild(wrap);
       }
       setTimeout(()=>msgsArea.lastElementChild?.scrollIntoView({behavior:'smooth'}),50);
     }
   }
+  const sEl=document.createElement('style');
+  sEl.textContent=`@keyframes fU{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`;
+  document.head.appendChild(sEl);
+  renderMsgs();sc.appendChild(msgsArea);
 
-  const styleEl=document.createElement('style');
-  styleEl.textContent=`@keyframes fU{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`;
-  document.head.appendChild(styleEl);
-  renderMsgs();s.appendChild(msgsArea);
-
-  // Input bar
-  const inputBar=D({style:{
-    padding:'12px 16px 32px',
-    background:'rgba(255,255,255,0.95)',
-    backdropFilter:'blur(20px)',WebkitBackdropFilter:'blur(20px)',
-    borderTop:`1px solid ${C.borderLight}`,flexShrink:'0',
-  }});
-  const inputWrap=D({style:{
+  // Input bar — from Figma: white rounded rect, dark send button
+  const inputBar=d({style:{padding:'12px 16px 28px',background:C.bg,borderTop:`1px solid ${C.border}`,flexShrink:'0'}});
+  const inputWrap=d({style:{
     display:'flex',gap:'10px',alignItems:'flex-end',
-    background:C.bg,border:`1.5px solid ${C.border}`,
-    borderRadius:'20px',padding:'10px 10px 10px 18px',
-    transition:'border-color .2s,box-shadow .2s',
+    background:C.card,border:`1px solid ${C.border}`,
+    borderRadius:'18px',padding:'10px 10px 10px 18px',
+    boxShadow:'0 1px 6px rgba(0,0,0,0.06)',
+    transition:'border-color .18s,box-shadow .18s',
   }});
-  inputWrap.addEventListener('focusin',()=>{inputWrap.style.borderColor=C.in;inputWrap.style.boxShadow=`0 0 0 3px rgba(99,102,241,0.1)`;inputWrap.style.background=C.white;});
-  inputWrap.addEventListener('focusout',()=>{inputWrap.style.borderColor=C.border;inputWrap.style.boxShadow='none';inputWrap.style.background=C.bg;});
+  inputWrap.addEventListener('focusin',()=>{inputWrap.style.borderColor=C.dark;inputWrap.style.boxShadow=`0 0 0 3px rgba(28,43,58,0.08)`;});
+  inputWrap.addEventListener('focusout',()=>{inputWrap.style.borderColor=C.border;inputWrap.style.boxShadow='0 1px 6px rgba(0,0,0,0.06)';});
 
   const ta=el('textarea',{placeholder:'A thought, a question, anything...',rows:'1',style:{
-    flex:'1',border:'none',background:'transparent',color:C.text,
+    flex:'1',border:'none',background:'transparent',color:C.dark,
     fontSize:'14px',lineHeight:'1.6',maxHeight:'130px',minHeight:'24px',
     paddingTop:'2px',resize:'none',fontFamily:SS,
   }});
@@ -655,211 +624,145 @@ function chat(){
   });
   ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doSend();}});
 
-  const sendB=B({style:{
-    width:'42px',height:'42px',borderRadius:'14px',
-    background:C.text,color:C.white,fontSize:'16px',
+  // Send btn — rounded rect with paper-plane icon (matching Figma)
+  const sendB=b({style:{
+    width:'40px',height:'40px',borderRadius:'12px',
+    background:C.dark,color:'rgba(255,255,255,0.9)',fontSize:'16px',
     display:'flex',alignItems:'center',justifyContent:'center',
-    flexShrink:'0',boxShadow:`0 4px 12px rgba(13,17,23,0.22)`,
+    flexShrink:'0',boxShadow:'0 4px 12px rgba(28,43,58,0.2)',
     opacity:'.35',transform:'scale(.9)',transition:'all .18s',
   }},'↑');
   sendB.addEventListener('click',doSend);
-  inputWrap.append(ta,sendB);
-  inputBar.appendChild(inputWrap);
-  inputBar.appendChild(P({style:{textAlign:'center',fontSize:'10px',color:C.textH,marginTop:'10px',letterSpacing:'.04em',fontFamily:SS}},'✦  Private · Remembered · Yours'));
-  s.appendChild(inputBar);
+  inputWrap.append(ta,sendB);inputBar.appendChild(inputWrap);
+  sc.appendChild(inputBar);
 
   async function doSend(){
     const text=ta.value.trim();if(!text||state.loading)return;
     ta.value='';ta.style.height='24px';sendB.style.opacity='.35';sendB.style.transform='scale(.9)';
     state.msgs.push({id:'u'+Date.now(),role:'user',content:text,ts:Date.now()});
-    await save('av_msgs',state.msgs.slice(-60));
-    state.loading=true;renderMsgs();
+    await save('av_msgs',state.msgs.slice(-60));state.loading=true;renderMsgs();
     try{
       const token=state.token||localStorage.getItem('aevi_token');
-      const res=await fetch(`${BACKEND}/api/chat`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},
-        body:JSON.stringify({messages:state.msgs.map(m=>({role:m.role,content:m.content}))})
-      });
-      if(res.status===429){
-        state.msgs.push({id:'l'+Date.now(),role:'assistant',ts:Date.now(),content:"You've reached your 5 message daily limit on the free plan.\n\nUpgrade to Aevi Plus for unlimited conversations. ✦"});
-        await save('av_msgs',state.msgs.slice(-60));state.loading=false;renderMsgs();
-        setTimeout(()=>go('upgrade','sR'),2500);return;
-      }
+      const res=await fetch(`${BACKEND}/api/chat`,{method:'POST',headers:{'Content-Type':'application/json',...(token?{'Authorization':'Bearer '+token}:{})},body:JSON.stringify({messages:state.msgs.map(m=>({role:m.role,content:m.content}))})});
+      if(res.status===429){state.msgs.push({id:'l'+Date.now(),role:'assistant',ts:Date.now(),content:"You've reached your 5 message daily limit.\n\nUpgrade to Aevi Plus for unlimited conversations."});await save('av_msgs',state.msgs.slice(-60));state.loading=false;renderMsgs();setTimeout(()=>go('upgrade','sR'),2500);return;}
       if(!res.ok)throw new Error('HTTP '+res.status);
       const data=await res.json();
-      if(data.memory_saved){
-        const mr=await fetch(`${BACKEND}/api/memories`,{headers:{...(token?{'Authorization':'Bearer '+token}:{})}});
-        if(mr.ok){const md=await mr.json();if(md.memories){state.mem=md.memories;await save('av_m',state.mem);}}
-      }
+      if(data.memory_saved){const mr=await fetch(`${BACKEND}/api/memories`,{headers:{...(token?{'Authorization':'Bearer '+token}:{})}});if(mr.ok){const md=await mr.json();if(md.memories){state.mem=md.memories;await save('av_m',state.mem);}}}
       state.msgs.push({id:'a'+Date.now(),role:'assistant',content:data.content,ts:Date.now()});
       await save('av_msgs',state.msgs.slice(-60));
-    }catch(e){
-      state.msgs.push({id:'e'+Date.now(),role:'assistant',content:'Error: '+e.message,ts:Date.now()});
-    }
+    }catch(e){state.msgs.push({id:'e'+Date.now(),role:'assistant',content:'Error: '+e.message,ts:Date.now()});}
     state.loading=false;renderMsgs();
   }
-  return s;
+  return sc;
 }
 
-/* ── INSIGHTS ── */
+/* ══════════════════════════════
+   7. INSIGHTS
+══════════════════════════════ */
 function insights(){
-  const s=D({class:'screen'});
-  const hdr=D({style:{padding:'58px 24px 20px',borderBottom:`1px solid ${C.borderLight}`,background:C.white}});
-  hdr.appendChild(H(2,{style:{fontFamily:SF,fontSize:'36px',fontStyle:'italic',color:C.text,fontWeight:'400'}},'Insights'));
-  hdr.appendChild(P({style:{fontSize:'13px',color:C.textM,marginTop:'4px',fontFamily:SS}},'Patterns emerging from your reflections'));
-  s.appendChild(hdr);
+  const sc=d({class:'screen'});
+  const hdr=d({style:{padding:'58px 24px 20px',borderBottom:`1px solid ${C.border}`,background:C.bg}});
+  hdr.appendChild(h(2,{style:{fontFamily:SF,fontSize:'44px',fontWeight:'500',color:C.dark,fontStyle:'italic'}},'Insights'));
+  hdr.appendChild(p({style:{fontSize:'14px',color:C.textM,marginTop:'4px',fontFamily:SS}},'Patterns from your reflections'));
+  sc.appendChild(hdr);
 
-  const body=D({style:{flex:'1',overflowY:'auto',padding:'24px 20px 110px'}});
+  const body=d({style:{flex:'1',overflowY:'auto',padding:'24px 20px 110px',background:C.bg}});
   const sEl=document.createElement('style');
   sEl.textContent=`@keyframes fU{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`;
   document.head.appendChild(sEl);
 
-  const cards=[
-    {icon:'◇',title:'Recurring themes',desc:state.mem.length>=2?`You keep returning to "${state.mem.slice(-1)[0].key.replace(/_/g,' ')}" — that signals something worth exploring.`:'Patterns emerge after a few sessions. Keep reflecting.',done:state.mem.length>=2},
-    {icon:'◎',title:'Reflection streak',desc:"Consistency is where real clarity lives. Every session builds on the last.",done:true},
-    {icon:'✦',title:'Memory depth',desc:state.mem.length>0?`Aevi holds ${state.mem.length} ${state.mem.length===1?'memory':'memories'} about you and is getting sharper.`:'Start a conversation — Aevi will begin remembering what matters.',done:state.mem.length>0},
-  ];
-
-  cards.forEach((c,i)=>{
-    const card=D({style:{
-      display:'flex',alignItems:'flex-start',gap:'16px',
-      padding:'20px',borderRadius:'20px',marginBottom:'12px',
-      border:`1.5px solid ${c.done?C.inBd:C.border}`,
-      background:c.done?C.inBg:C.bg,
-      animation:`fU .3s ease forwards`,animationDelay:`${i*0.1}s`,opacity:'0',
+  // Insight cards — white with dark circle icon
+  [{icon:'◇',title:'Recurring themes',desc:state.mem.length>=2?`You often return to "${state.mem.slice(-1)[0].key.replace(/_/g,' ')}".`:'Keep reflecting — patterns emerge after a few sessions.',done:state.mem.length>=2},
+   {icon:'◎',title:'Reflection streak',desc:'Consistency builds real clarity.',done:true},
+   {icon:'◎',title:'Memory growth',desc:state.mem.length>0?`Aevi holds ${state.mem.length} ${state.mem.length===1?'memory':'memories'} about you.`:'Start chatting to build memory.',done:state.mem.length>0},
+  ].forEach((item,i)=>{
+    const c2=d({style:{
+      display:'flex',alignItems:'center',gap:'16px',
+      padding:'18px 20px',borderRadius:'16px',marginBottom:'10px',
+      border:`1px solid ${C.border}`,background:C.card,
+      boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
+      animation:`fU .3s ease forwards`,animationDelay:`${i*0.08}s`,opacity:'0',
     }});
-    const ico=D({style:{
-      width:'44px',height:'44px',borderRadius:'14px',flexShrink:'0',
-      background:c.done?C.in:C.border,
+    const ico=d({style:{
+      width:'40px',height:'40px',borderRadius:'50%',flexShrink:'0',
+      background:item.done?C.dark:'rgba(28,43,58,0.07)',
       display:'flex',alignItems:'center',justifyContent:'center',
-      fontSize:'18px',color:c.done?C.white:C.textM,
-      marginTop:'2px',
-    }},c.done?'✓':c.icon);
-    const txt=D({style:{flex:'1'}});
-    txt.appendChild(P({style:{fontSize:'15px',fontWeight:'600',color:C.text,marginBottom:'6px',fontFamily:SS}},c.title));
-    txt.appendChild(P({style:{fontSize:'13px',color:c.done?C.inDark:C.textM,lineHeight:'1.6',fontFamily:SS}},c.desc));
-    card.append(ico,txt);body.appendChild(card);
+      fontSize:'16px',color:item.done?'#FFFFFF':C.textM,
+    }},item.done?'✓':item.icon);
+    const txt=d({style:{flex:'1'}});
+    txt.appendChild(p({style:{fontSize:'15px',fontWeight:'600',color:C.dark,marginBottom:'3px',fontFamily:SS}},item.title));
+    txt.appendChild(p({style:{fontSize:'13px',color:C.textM,lineHeight:'1.5',fontFamily:SS}},item.desc));
+    c2.append(ico,txt);body.appendChild(c2);
   });
 
-  // Memory bank
-  body.appendChild(P({style:{fontSize:'11px',color:C.textH,fontWeight:'600',letterSpacing:'.07em',textTransform:'uppercase',margin:'28px 0 16px',fontFamily:SS}},'Memory bank'));
+  body.appendChild(sectionLbl('Memory bank'));
 
   if(state.mem.length===0){
-    const empty=D({style:{background:C.bg,borderRadius:'20px',padding:'32px',textAlign:'center',border:`1px solid ${C.borderLight}`}});
-    empty.appendChild(P({style:{fontSize:'14px',color:C.textM,fontFamily:SF,fontStyle:'italic',lineHeight:'1.7',marginBottom:'16px'}},'Nothing saved yet.\nHave a conversation — I\'ll quietly remember what matters.'));
-    empty.appendChild(B({onClick:()=>go('chat','sR'),style:{
-      padding:'11px 24px',borderRadius:'100px',border:`1.5px solid ${C.border}`,
-      background:C.white,color:C.text,fontSize:'13px',fontFamily:SS,fontWeight:'500',
-    }},'Start chatting →'));
+    const empty=d({style:{background:C.card,borderRadius:'16px',padding:'28px',textAlign:'center',border:`1px solid ${C.border}`}});
+    empty.appendChild(p({style:{fontSize:'14px',color:C.textM,fontFamily:SS,lineHeight:'1.7',marginBottom:'16px'}},'Nothing saved yet. Have a conversation — Aevi will quietly remember what matters.'));
+    empty.appendChild(b({onClick:()=>go('chat','sR'),style:{padding:'10px 24px',borderRadius:'100px',border:`1px solid ${C.border}`,background:'transparent',color:C.dark,fontSize:'13px',fontFamily:SS,fontWeight:'500'}},'Start chatting →'));
     body.appendChild(empty);
   } else {
     state.mem.forEach(m=>{
-      const mc=D({style:{
-        background:C.white,borderRadius:'16px',padding:'16px 20px',marginBottom:'10px',
-        border:`1.5px solid ${C.border}`,position:'relative',overflow:'hidden',
-        boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
-      }});
-      const accent=D({style:{position:'absolute',top:'0',left:'0',width:'3px',height:'100%',background:C.in,borderRadius:'0 0 0 0'}});
-      mc.appendChild(accent);
-      mc.appendChild(P({style:{fontSize:'10px',color:C.in,fontFamily:SS,letterSpacing:'.07em',textTransform:'uppercase',marginBottom:'6px',fontWeight:'600'}},m.key.replace(/_/g,' ')));
-      mc.appendChild(P({style:{fontSize:'14px',color:C.text,fontFamily:SS,lineHeight:'1.6'}},m.value));
+      const mc=d({style:{background:C.card,borderRadius:'14px',padding:'16px 18px',marginBottom:'10px',border:`1px solid ${C.border}`,borderLeft:`3px solid ${C.dark}`,boxShadow:'0 1px 4px rgba(0,0,0,0.04)'}});
+      mc.appendChild(p({style:{fontSize:'10px',color:C.textH,fontFamily:SS,letterSpacing:'.09em',textTransform:'uppercase',marginBottom:'5px',fontWeight:'600'}},m.key.replace(/_/g,' ')));
+      mc.appendChild(p({style:{fontSize:'14px',color:C.dark,fontFamily:SS,lineHeight:'1.6'}},m.value));
       body.appendChild(mc);
     });
   }
-  s.append(body,navBar('insights'));
-  return s;
+  sc.append(body,navBar('insights'));return sc;
 }
 
-/* ── UPGRADE ── */
+/* ══════════════════════════════
+   8. UPGRADE
+══════════════════════════════ */
 function upgrade(){
-  const s=D({class:'screen'});
-  const hdr=D({style:{padding:'58px 24px 20px',borderBottom:`1px solid ${C.borderLight}`,background:C.white}});
-  hdr.appendChild(B({onClick:()=>go('home','sL'),style:{
-    width:'36px',height:'36px',borderRadius:'50%',background:C.bg,border:`1px solid ${C.border}`,
-    display:'flex',alignItems:'center',justifyContent:'center',
-    fontSize:'16px',color:C.text,marginBottom:'14px',
-  }},'←'));
-  hdr.appendChild(H(2,{style:{fontFamily:SF,fontSize:'36px',fontStyle:'italic',color:C.text,fontWeight:'400'}},'Upgrade Aevi'));
-  hdr.appendChild(P({style:{fontSize:'13px',color:C.textM,marginTop:'4px',fontFamily:SS}},'Unlock your complete experience'));
-  s.appendChild(hdr);
+  const sc=d({class:'screen'});
+  const hdr=d({style:{padding:'58px 24px 20px',borderBottom:`1px solid ${C.border}`,background:C.bg}});
+  hdr.appendChild(b({onClick:()=>go('home','sL'),style:{width:'38px',height:'38px',borderRadius:'50%',background:C.card,border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px',color:C.dark,marginBottom:'16px',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}},'←'));
+  hdr.appendChild(h(2,{style:{fontFamily:SF,fontSize:'44px',fontWeight:'500',color:C.dark,fontStyle:'italic'}},'Upgrade Aevi'));
+  sc.appendChild(hdr);
 
-  const body=D({style:{flex:'1',overflowY:'auto',padding:'24px 20px 52px'}});
+  const body=d({style:{flex:'1',overflowY:'auto',padding:'24px 20px 48px',background:C.bg}});
 
-  let sel='plus';
-  const plans=[
-    {id:'free',name:'Free',price:'€0',period:'forever',
-     features:['Basic chat & journal','10 memories stored','5 messages per day','Core insights'],hot:false,dark:false},
-    {id:'plus',name:'Plus',price:'€9',period:'/ month',
-     features:['Unlimited conversations','100 memories stored','Tone personalisation','Weekly summaries','Export your notes'],hot:true,dark:false},
-    {id:'pro',name:'Pro',price:'€19',period:'/ month',
-     features:['Everything in Plus','Unlimited memory','Advanced pattern insights','AI content rewriting','Priority responses'],hot:false,dark:true},
-  ];
-
-  const planEls={};
-  plans.forEach(plan=>{
-    const isHot=plan.hot,isDark=plan.dark;
-    const pc=B({style:{
-      width:'100%',padding:'22px',borderRadius:'22px',
-      border:isHot?`2px solid ${C.in}`:`1.5px solid ${C.border}`,
-      background:isDark?C.text:isHot?C.inBg:C.white,
-      textAlign:'left',marginBottom:'14px',position:'relative',
-      transition:'all .15s',
-      boxShadow:isHot?`0 4px 28px rgba(99,102,241,0.18)`:'0 1px 4px rgba(0,0,0,0.04)',
+  [{id:'free',name:'Free',price:'€0',period:'forever',features:['Basic chat','10 memories','5 msgs/day'],hot:false},
+   {id:'plus',name:'Plus',price:'€9',period:'/month',features:['Unlimited chat','100 memories','Summaries'],hot:true},
+   {id:'pro',name:'Pro',price:'€19',period:'/month',features:['Everything in Plus','Unlimited memory','Priority AI'],hot:false},
+  ].forEach(plan=>{
+    const pc=d({style:{
+      padding:'22px',borderRadius:'18px',
+      border:plan.hot?`2px solid ${C.dark}`:`1px solid ${C.border}`,
+      background:C.card,marginBottom:'12px',
+      position:'relative',
+      boxShadow:plan.hot?'0 4px 24px rgba(28,43,58,0.12)':'0 1px 4px rgba(0,0,0,0.04)',
     }});
-
-    if(isHot){
-      const badge=D({style:{
+    if(plan.hot){
+      pc.appendChild(d({style:{
         position:'absolute',top:'-13px',left:'50%',transform:'translateX(-50%)',
-        background:C.in,color:C.white,fontSize:'10px',padding:'4px 16px',
-        borderRadius:'100px',fontFamily:SS,fontWeight:'700',letterSpacing:'.04em',
-        boxShadow:`0 4px 12px rgba(99,102,241,0.4)`,whiteSpace:'nowrap',
-      }},'⚡  MOST POPULAR');
-      pc.appendChild(badge);
+        background:C.dark,color:'#FFFFFF',fontSize:'11px',padding:'4px 16px',
+        borderRadius:'100px',fontFamily:SS,fontWeight:'600',letterSpacing:'.04em',whiteSpace:'nowrap',
+      }},'Most popular'));
     }
-
-    const top=D({style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:'16px'}});
-    top.appendChild(S({style:{fontFamily:SF,fontSize:'26px',fontStyle:'italic',fontWeight:'400',color:isDark?C.white:C.text}},plan.name));
-    const priceW=D({style:{display:'flex',alignItems:'baseline',gap:'3px'}});
-    priceW.appendChild(S({style:{fontFamily:SF,fontSize:'32px',fontWeight:'400',color:isHot?C.in:isDark?'#A5B4FC':C.text}},plan.price));
-    priceW.appendChild(S({style:{fontSize:'12px',color:isDark?C.textH:C.textM,fontFamily:SS}},plan.period));
-    top.appendChild(priceW);pc.appendChild(top);
-
+    const top=d({style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'16px'}});
+    top.appendChild(s({style:{fontFamily:SF,fontSize:'28px',fontStyle:'italic',fontWeight:'400',color:C.dark}},plan.name));
+    const pr=d({style:{textAlign:'right'}});
+    pr.appendChild(d({style:{fontFamily:SF,fontSize:'34px',fontWeight:'400',color:C.dark,lineHeight:'1'}},plan.price));
+    pr.appendChild(d({style:{fontSize:'12px',color:C.textM,fontFamily:SS}},plan.period));
+    top.appendChild(pr);pc.appendChild(top);
     plan.features.forEach(f=>{
-      const fr=D({style:{display:'flex',alignItems:'center',gap:'10px',fontSize:'13px',color:isDark?'#D1D5DB':C.textS,fontFamily:SS,marginBottom:'10px'}});
-      fr.appendChild(D({style:{width:'18px',height:'18px',borderRadius:'50%',flexShrink:'0',background:isHot?C.in:isDark?'rgba(99,102,241,0.3)':C.bg,border:isHot?'none':`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'9px',color:isHot?C.white:C.in,fontWeight:'700'}},'✓'));
-      fr.appendChild(S({},f));
+      const fr=d({style:{display:'flex',alignItems:'center',gap:'10px',marginBottom:'10px'}});
+      fr.appendChild(d({style:{width:'6px',height:'6px',borderRadius:'50%',background:C.textM,flexShrink:'0'}}));
+      fr.appendChild(s({style:{fontSize:'14px',color:C.textS,fontFamily:SS}},f));
       pc.appendChild(fr);
     });
-
-    pc.addEventListener('click',()=>{
-      sel=plan.id;
-      Object.values(planEls).forEach(c=>{c.style.border=`1.5px solid ${C.border}`;c.style.background=C.white;c.style.boxShadow='0 1px 4px rgba(0,0,0,0.04)';});
-      pc.style.border=`2px solid ${C.in}`;pc.style.background=plan.dark?C.text:C.inBg;pc.style.boxShadow=`0 4px 28px rgba(99,102,241,0.18)`;
-      ctaBtn.textContent=plan.id==='free'?'Continue with Free':`Start Aevi ${plan.name} — ${plan.price}/mo`;
-    });
-    planEls[plan.id]=pc;body.appendChild(pc);
+    body.appendChild(pc);
   });
 
-  const ctaBtn=B({style:{
-    width:'100%',height:'56px',borderRadius:'16px',
-    background:C.text,color:C.white,
-    fontSize:'15px',fontFamily:SS,fontWeight:'600',
-    boxShadow:`0 8px 24px rgba(13,17,23,0.22)`,
-    marginBottom:'14px',letterSpacing:'.01em',
-  }},'Start Aevi Plus — €9/mo');
-  body.appendChild(ctaBtn);
-
-  // Trust line
-  const trust=D({style:{display:'flex',justifyContent:'center',gap:'20px'}});
-  ['Cancel anytime','No commitment','Secure payment'].forEach(t=>{
-    trust.appendChild(D({style:{display:'flex',alignItems:'center',gap:'5px',fontSize:'11px',color:C.textH,fontFamily:SS}},
-      S({style:{color:C.green}},'✓'),S({},t)
-    ));
-  });
-  body.appendChild(trust);
-  s.appendChild(body);
-  return s;
+  body.appendChild(d({style:{height:'8px'}}));
+  body.appendChild(primBtn('Start Aevi Plus — €9/mo',()=>{}));
+  body.appendChild(d({style:{height:'12px'}}));
+  body.appendChild(p({style:{textAlign:'center',fontSize:'12px',color:C.textH,fontFamily:SS}},'Cancel anytime · No commitment'));
+  sc.appendChild(body);return sc;
 }
 
 init();
