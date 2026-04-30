@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verified — Aevi</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      background-color: #FDF6F0;
+      font-family: Georgia, 'Times New Roman', serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px 24px;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      text-align: center;
+      max-width: 360px;
+      width: 100%;
+    }
+
+    .wordmark {
+      font-size: 13px;
+      font-family: Georgia, serif;
+      font-style: italic;
+      letter-spacing: 0.22em;
+      color: #867070;
+      text-transform: lowercase;
+      margin-bottom: 52px;
+    }
+
+    .sparkle {
+      font-size: 22px;
+      color: #9a7878;
+      margin-bottom: 28px;
+      display: block;
+      line-height: 1;
+    }
+
+    .heading {
+      font-size: clamp(28px, 6vw, 34px);
+      font-weight: normal;
+      color: #3D2B2B;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+      margin-bottom: 18px;
+    }
+
+    .subtext {
+      font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: #9a7878;
+      line-height: 1.65;
+      letter-spacing: 0.01em;
+    }
+
+    .divider {
+      width: 32px;
+      height: 1px;
+      background-color: rgba(134, 112, 112, 0.25);
+      margin: 40px auto 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <p class="wordmark">aevi</p>
+    <span class="sparkle">✦</span>
+    <h1 class="heading">You're verified.</h1>
+    <p class="subtext">Your private space is ready.<br>Open the Aevi app to sign in.</p>
+    <div class="divider"></div>
+  </div>
+</body>
+</html>
