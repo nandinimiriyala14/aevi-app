@@ -46,9 +46,8 @@
       opacity: 0.4;
     }
     a { text-decoration: none; color: inherit; }
-    img { display: block; max-width: 100%; }
 
-    /* ── Animations ────────────────────────────────────────────────────────── */
+    /* ── Keyframes ─────────────────────────────────────────────────────────── */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(28px); }
       to   { opacity: 1; transform: translateY(0); }
@@ -58,70 +57,69 @@
       to   { transform: translateX(-50%); }
     }
     @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50%       { transform: translateY(-8px); }
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-10px); }
     }
     @keyframes pulseGlow {
-      0%, 100% { opacity: 0.5; }
-      50%       { opacity: 0.8; }
+      0%, 100% { opacity: 0.45; transform: scale(1); }
+      50%       { opacity: 0.75; transform: scale(1.05); }
+    }
+    @keyframes phoneIn {
+      from { opacity: 0; transform: translateY(30px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes shine {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
     }
 
+    /* ── Scroll fade-up base ───────────────────────────────────────────────── */
     .fade-up {
       opacity: 0;
-      transform: translateY(40px);
+      transform: translateY(50px);
       transition: opacity 0.8s ease, transform 0.8s ease;
     }
-    .fade-up.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    .float          { animation: float 4s ease-in-out infinite; }
-    .float-delayed  { animation: float 4s ease-in-out 2s infinite; }
-    .float-delayed2 { animation: float 4s ease-in-out 1s infinite; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+    /* Directional slide-ins (testimonials) */
+    .anim-from-left  { opacity: 0; transform: translateX(-40px); transition: opacity 0.8s ease, transform 0.8s ease; }
+    .anim-from-bottom{ opacity: 0; transform: translateY(40px);  transition: opacity 0.8s ease, transform 0.8s ease; }
+    .anim-from-right { opacity: 0; transform: translateX(40px);  transition: opacity 0.8s ease, transform 0.8s ease; }
+    .anim-from-left.visible  { opacity: 1; transform: translateX(0); }
+    .anim-from-bottom.visible{ opacity: 1; transform: translateY(0); }
+    .anim-from-right.visible { opacity: 1; transform: translateX(0); }
 
     /* ── Nav ───────────────────────────────────────────────────────────────── */
     nav {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       height: 64px;
       padding-inline: clamp(24px, 5vw, 80px);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(245, 238, 234, 0.85);
+      background: rgba(245,238,234,0.85);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(213, 180, 180, 0.2);
+      border-bottom: 1px solid rgba(213,180,180,0.2);
       z-index: 100;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
     }
-    .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    nav.scrolled {
+      background: rgba(245,238,234,0.97);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 1px 16px rgba(92,74,74,0.06);
     }
-    .nav-logo .sparkle {
-      font-size: 12px;
-      color: var(--rose);
-    }
+    .nav-logo { display: flex; align-items: center; gap: 8px; }
+    .nav-logo .sparkle { font-size: 12px; color: var(--rose); }
     .nav-logo .logo-text {
       font-family: 'Playfair Display', serif;
       font-style: italic;
       font-size: 22px;
       color: var(--rose-deep);
     }
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 32px;
-    }
-    .nav-links a {
-      font-weight: 300;
-      font-size: 14px;
-      color: var(--text-light);
-      transition: color 0.2s;
-    }
+    .nav-links { display: flex; align-items: center; gap: 32px; }
+    .nav-links a { font-weight: 300; font-size: 14px; color: var(--text-light); transition: color 0.2s; }
     .nav-links a:hover { color: var(--rose-dark); }
     .nav-cta {
       background: var(--rose-deep);
@@ -140,13 +138,12 @@
     /* ── Hero ──────────────────────────────────────────────────────────────── */
     .hero {
       min-height: 100vh;
-      padding: 120px clamp(24px, 5vw, 80px) 80px;
+      padding: 120px clamp(24px,5vw,80px) 80px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       align-items: center;
       gap: 60px;
     }
-    .hero-left {}
     .hero-label {
       font-weight: 400;
       font-size: 12px;
@@ -154,6 +151,7 @@
       letter-spacing: 3px;
       margin-bottom: 32px;
       text-transform: uppercase;
+      animation: fadeUp 0.6s ease 0s both;
     }
     .hero h1 { line-height: 1; }
     .meet {
@@ -162,7 +160,7 @@
       font-size: clamp(32px, 4vw, 52px);
       color: var(--rose);
       display: block;
-      animation: fadeUp 0.8s ease 0.1s both;
+      animation: fadeUp 0.6s ease 0.15s both;
     }
     .alter {
       font-family: 'Playfair Display', serif;
@@ -182,7 +180,7 @@
       color: var(--rose);
       display: block;
       line-height: 0.9;
-      animation: fadeUp 0.8s ease 0.5s both;
+      animation: fadeUp 0.8s ease 0.45s both;
     }
     .hero-body {
       font-weight: 300;
@@ -191,14 +189,11 @@
       max-width: 420px;
       line-height: 1.7;
       margin-top: 32px;
-      animation: fadeUp 0.8s ease 0.7s both;
+      animation: fadeUp 0.6s ease 0.6s both;
     }
     .hero-buttons {
-      display: flex;
-      gap: 14px;
-      margin-top: 40px;
-      flex-wrap: wrap;
-      animation: fadeUp 0.8s ease 0.9s both;
+      display: flex; gap: 14px; margin-top: 40px; flex-wrap: wrap;
+      animation: fadeUp 0.6s ease 0.75s both;
     }
     .btn-primary {
       background: var(--rose-deep);
@@ -227,212 +222,257 @@
     }
     .btn-outline:hover { border-color: var(--rose); color: var(--rose-dark); transform: translateY(-2px); }
     .hero-social-proof {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-top: 40px;
-      animation: fadeUp 0.8s ease 1.1s both;
+      display: flex; align-items: center; gap: 14px; margin-top: 40px;
+      animation: fadeUp 0.6s ease 0.9s both;
     }
-    .avatars {
-      display: flex;
-    }
+    .avatars { display: flex; }
     .avatar-circle {
-      width: 40px;
-      height: 40px;
+      width: 40px; height: 40px;
       border-radius: 50%;
       background: var(--rose-blush);
       border: 2px solid var(--bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--rose);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: var(--rose);
       margin-left: -10px;
     }
     .avatars .avatar-circle:first-child { margin-left: 0; }
     .proof-text { display: flex; flex-direction: column; gap: 2px; }
-    .proof-count {
-      font-weight: 400;
-      font-size: 14px;
-      color: var(--text-dark);
-    }
-    .proof-sub {
-      font-weight: 300;
-      font-size: 13px;
-      color: var(--text-light);
-    }
+    .proof-count { font-weight: 400; font-size: 14px; color: var(--text-dark); }
+    .proof-sub   { font-weight: 300; font-size: 13px; color: var(--text-light); }
 
-    /* ── Phone Mockup ──────────────────────────────────────────────────────── */
+    /* ── Phone Wrap & Glow ─────────────────────────────────────────────────── */
     .hero-right {
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 620px;
+      min-height: 640px;
     }
     .phone-glow {
       position: absolute;
-      width: 500px;
-      height: 500px;
+      width: 480px; height: 480px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(228, 208, 208, 0.5) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(228,208,208,0.55) 0%, transparent 70%);
       z-index: 0;
-      animation: pulseGlow 4s ease-in-out infinite;
+      animation: pulseGlow 5s ease-in-out infinite;
+      pointer-events: none;
     }
-    .phone {
+    .phone-wrap {
       position: relative;
-      z-index: 1;
       width: 280px;
-      height: 560px;
-      background: var(--rose-pale);
+      height: 580px;
+      z-index: 1;
+      animation: phoneIn 1s ease 0.4s both;
+    }
+
+    /* ── Phone Frame ───────────────────────────────────────────────────────── */
+    .phone {
+      width: 280px;
+      height: 580px;
+      background: #FDF6F0;
       border-radius: 40px;
       border: 8px solid var(--rose-blush);
-      box-shadow: 0 40px 80px rgba(92, 74, 74, 0.2), 0 0 0 1px rgba(213, 180, 180, 0.3);
+      box-shadow:
+        0 40px 80px rgba(92,74,74,0.22),
+        0 0 0 1px rgba(213,180,180,0.35),
+        inset 0 0 0 1px rgba(255,255,255,0.6);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
-    .phone-bar {
-      height: 32px;
-      background: rgba(255,255,255,0.6);
+
+    /* Status bar */
+    .phone-status-bar {
+      height: 28px;
+      background: rgba(253,246,240,0.97);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
     }
     .phone-notch {
-      width: 80px;
-      height: 18px;
+      width: 72px; height: 16px;
       background: var(--rose-blush);
-      border-radius: 0 0 12px 12px;
+      border-radius: 0 0 10px 10px;
     }
-    .phone-screen {
-      flex: 1;
-      padding: 16px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      overflow: hidden;
-    }
-    .phone-header {
-      text-align: center;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(213,180,180,0.3);
-    }
-    .phone-header-name {
-      font-family: 'Playfair Display', serif;
-      font-style: italic;
-      font-size: 14px;
-      color: var(--rose-deep);
-    }
-    .phone-header-sub {
-      font-size: 10px;
-      color: var(--text-light);
-      margin-top: 1px;
-    }
-    .bubble {
-      max-width: 85%;
-      padding: 10px 13px;
-      border-radius: 16px;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-    .bubble-aevi {
-      background: rgba(253,250,249,0.9);
-      border: 1px solid rgba(213,180,180,0.3);
-      border-top-left-radius: 4px;
-      color: #4F4444;
-      align-self: flex-start;
-    }
-    .bubble-user {
-      background: var(--rose);
-      color: white;
-      border-top-right-radius: 4px;
-      align-self: flex-end;
-    }
-    .phone-input-bar {
-      height: 44px;
-      background: rgba(255,255,255,0.8);
-      border-top: 1px solid rgba(213,180,180,0.2);
+
+    /* Chat header */
+    .phone-chat-header {
+      height: 58px;
+      background: rgba(253,246,240,0.97);
+      border-bottom: 1px solid rgba(213,180,180,0.2);
       display: flex;
       align-items: center;
       padding: 0 14px;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .phone-avatar {
+      width: 36px; height: 36px;
+      border-radius: 12px;
+      background: #F5EBEB;
+      border: 1px solid rgba(213,180,180,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: var(--rose);
+      flex-shrink: 0;
+    }
+    .phone-header-info { flex: 1; min-width: 0; }
+    .phone-chat-name {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 14px;
+      color: #3D2B2B;
+      line-height: 1.2;
+    }
+    .phone-chat-status {
+      font-size: 9px;
+      font-weight: 500;
+      color: #22C55E;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+    .phone-search-icon {
+      font-size: 16px;
+      color: var(--text-light);
+      flex-shrink: 0;
+    }
+
+    /* Messages */
+    .phone-screen {
+      flex: 1;
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+      background: #FDF6F0;
+    }
+    .bubble {
+      max-width: 88%;
+      padding: 9px 12px;
+      font-size: 11px;
+      line-height: 1.55;
+    }
+    .bubble-aevi {
+      background: #F5EBEB;
+      border-radius: 18px;
+      border-top-left-radius: 4px;
+      color: #3D2B2B;
+      align-self: flex-start;
+    }
+    .bubble-user {
+      background: #867070;
+      border-radius: 18px;
+      border-top-right-radius: 4px;
+      color: white;
+      align-self: flex-end;
+    }
+
+    /* Input bar */
+    .phone-input-area {
+      background: rgba(253,246,240,0.97);
+      border-top: 1px solid rgba(213,180,180,0.2);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
       gap: 8px;
       flex-shrink: 0;
     }
     .phone-input-pill {
       flex: 1;
-      height: 28px;
-      background: rgba(245,235,235,0.8);
-      border-radius: 14px;
-    }
-    .phone-send-btn {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--rose-deep);
+      height: 32px;
+      background: #FFFFFF;
+      border-radius: 16px;
+      border: 1px solid rgba(213,180,180,0.25);
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      color: white;
+      padding: 0 12px;
     }
+    .phone-placeholder {
+      font-size: 10px;
+      color: #C4A0A0;
+      font-weight: 300;
+    }
+    .phone-send-btn {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: #3D2B2B;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: white;
+      flex-shrink: 0;
+    }
+
+    /* Tab bar */
+    .phone-tab-bar {
+      height: 44px;
+      background: rgba(240,219,217,0.97);
+      border-top: 1px solid rgba(180,130,130,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      flex-shrink: 0;
+    }
+    .phone-tab {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      color: #A08888;
+      border-radius: 8px;
+    }
+    .phone-tab.active { color: #3D2B2B; }
 
     /* ── Floating cards ────────────────────────────────────────────────────── */
     .float-card {
       position: absolute;
       background: var(--white);
       border-radius: 16px;
-      padding: 14px 16px;
-      box-shadow: 0 8px 32px rgba(92,74,74,0.12), 0 1px 0 rgba(213,180,180,0.2);
+      padding: 13px 15px;
+      box-shadow: 0 8px 32px rgba(92,74,74,0.13), 0 1px 0 rgba(213,180,180,0.2);
       z-index: 2;
     }
     .float-card-label {
-      font-size: 9px;
-      font-weight: 600;
+      font-size: 9px; font-weight: 600;
       color: var(--text-light);
       letter-spacing: 1.5px;
       text-transform: uppercase;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .float-card-value {
       font-family: 'Playfair Display', serif;
-      font-size: 20px;
-      font-weight: 700;
+      font-size: 20px; font-weight: 700;
       color: var(--rose-deep);
     }
-    .float-card-sub {
-      font-size: 11px;
-      color: var(--text-light);
-      margin-top: 2px;
-    }
+    .float-card-sub { font-size: 10px; color: var(--text-light); margin-top: 1px; }
+
+    /* Card 1 — Clarity (top left, overlapping left edge) */
     .card-clarity {
       top: 60px;
-      left: -40px;
+      left: -120px;
+      animation: float 4s ease-in-out infinite;
     }
+    /* Card 2 — Mood badge (top right) */
     .card-mood {
-      right: -30px;
-      top: 50%;
-      transform: translateY(-50%);
+      top: 120px;
+      right: -80px;
       background: var(--rose-deep);
-      padding: 10px 16px;
+      padding: 9px 18px;
       border-radius: 50px;
+      animation: float 4s ease-in-out 1s infinite;
     }
-    .card-mood span {
-      font-size: 13px;
-      font-weight: 500;
-      color: white;
-    }
+    .card-mood span { font-size: 13px; font-weight: 500; color: white; }
+    /* Card 3 — Streak (bottom left) */
     .card-streak {
-      bottom: 130px;
-      left: -50px;
+      bottom: 120px;
+      left: -100px;
+      animation: float 4s ease-in-out 2s infinite;
     }
+    /* Card 4 — Quote (bottom right) */
     .card-quote {
       bottom: 60px;
-      right: -40px;
+      right: -90px;
       background: var(--rose-deep);
-      max-width: 160px;
+      max-width: 155px;
+      animation: float 4s ease-in-out 3s infinite;
     }
     .card-quote p {
       font-family: 'Playfair Display', serif;
@@ -442,8 +482,7 @@
       line-height: 1.5;
     }
     .card-quote .quote-attr {
-      font-size: 10px;
-      color: var(--rose-light);
+      font-size: 10px; color: var(--rose-light);
       margin-top: 6px;
       font-style: normal;
       font-family: 'Outfit', sans-serif;
@@ -459,17 +498,18 @@
     .marquee-track {
       display: flex;
       white-space: nowrap;
-      animation: marquee 20s linear infinite;
+      will-change: transform;
+      animation: marquee 24s linear infinite;
     }
     .marquee-text {
       font-weight: 300;
       font-size: 13px;
       color: var(--rose-light);
       letter-spacing: 3px;
-      padding-right: 0;
+      flex-shrink: 0;
     }
 
-    /* ── Section shared ────────────────────────────────────────────────────── */
+    /* ── Shared section ────────────────────────────────────────────────────── */
     .section-label {
       font-weight: 400;
       font-size: 12px;
@@ -480,22 +520,18 @@
     }
     .section-heading {
       font-family: 'Playfair Display', serif;
-      font-size: clamp(36px, 5vw, 52px);
+      font-size: clamp(36px,5vw,52px);
       color: var(--rose-deep);
       line-height: 1.15;
       margin-bottom: 12px;
     }
-    .section-heading em {
-      font-style: italic;
-    }
+    .section-heading em { font-style: italic; }
 
     /* ── How it Feels ──────────────────────────────────────────────────────── */
-    .feels-section {
-      padding: 120px clamp(24px, 5vw, 80px);
-    }
+    .feels-section { padding: 120px clamp(24px,5vw,80px); }
     .feels-cards {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3,1fr);
       gap: 20px;
       margin-top: 60px;
     }
@@ -503,26 +539,28 @@
       background: var(--white);
       border-radius: 24px;
       padding: 36px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .feels-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 48px rgba(92,74,74,0.1);
     }
     .feels-card-dark {
       background: var(--rose-deep);
       transform: scale(1.02);
     }
+    .feels-card-dark:hover {
+      transform: scale(1.02) translateY(-6px);
+    }
     .feels-icon {
-      width: 48px;
-      height: 48px;
+      width: 48px; height: 48px;
       border-radius: 50%;
       background: var(--rose-pale);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      color: var(--rose);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; color: var(--rose);
       margin-bottom: 24px;
     }
-    .feels-icon-dark {
-      background: rgba(255,255,255,0.1);
-    }
+    .feels-icon-dark { background: rgba(255,255,255,0.1); }
     .feels-card h3 {
       font-family: 'Playfair Display', serif;
       font-style: italic;
@@ -532,19 +570,11 @@
       line-height: 1.3;
     }
     .feels-card-dark h3 { color: #F5EBEB; }
-    .feels-card p {
-      font-weight: 300;
-      font-size: 15px;
-      color: var(--text-light);
-      line-height: 1.7;
-    }
+    .feels-card p { font-weight: 300; font-size: 15px; color: var(--text-light); line-height: 1.7; }
     .feels-card-dark p { color: var(--rose-light); }
 
     /* ── Inner World ───────────────────────────────────────────────────────── */
-    .inner-section {
-      padding: 120px clamp(24px, 5vw, 80px);
-      background: var(--cream);
-    }
+    .inner-section { padding: 120px clamp(24px,5vw,80px); background: var(--cream); }
     .inner-grid {
       display: grid;
       grid-template-columns: 1.2fr 1fr;
@@ -558,8 +588,7 @@
       box-shadow: 0 4px 32px rgba(92,74,74,0.08);
     }
     .inner-chat-label {
-      font-size: 11px;
-      font-weight: 500;
+      font-size: 11px; font-weight: 500;
       color: var(--text-light);
       letter-spacing: 2px;
       text-transform: uppercase;
@@ -573,22 +602,9 @@
       margin-bottom: 12px;
       max-width: 90%;
     }
-    .inner-bubble-aevi {
-      background: var(--rose-pale);
-      color: var(--rose-dark);
-      border-top-left-radius: 4px;
-    }
-    .inner-bubble-user {
-      background: var(--rose-deep);
-      color: white;
-      border-top-right-radius: 4px;
-      margin-left: auto;
-    }
-    .inner-right {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
+    .inner-bubble-aevi { background: var(--rose-pale); color: var(--rose-dark); border-top-left-radius: 4px; }
+    .inner-bubble-user { background: var(--rose-deep); color: white; border-top-right-radius: 4px; margin-left: auto; }
+    .inner-right { display: flex; flex-direction: column; gap: 20px; }
     .inner-journal-card {
       background: var(--white);
       border-radius: 24px;
@@ -596,98 +612,41 @@
       box-shadow: 0 4px 24px rgba(92,74,74,0.07);
       flex: 1;
     }
-    .inner-journal-label {
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--text-light);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-    .inner-journal-title {
-      font-family: 'Playfair Display', serif;
-      font-style: italic;
-      font-size: 18px;
-      color: var(--rose-deep);
-      margin-bottom: 10px;
-    }
-    .inner-journal-text {
-      font-weight: 300;
-      font-size: 14px;
-      color: var(--text-light);
-      line-height: 1.7;
-    }
-    .inner-insights-card {
-      background: var(--rose-deep);
-      border-radius: 24px;
-      padding: 28px;
-      flex: 1;
-    }
-    .inner-insights-label {
-      font-size: 11px;
-      font-weight: 300;
-      color: rgba(255,255,255,0.5);
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-    .inner-insights-title {
-      font-family: 'Playfair Display', serif;
-      font-style: italic;
-      font-size: 18px;
-      color: var(--cream);
-      margin-bottom: 20px;
-    }
-    .mini-bars {
-      display: flex;
-      align-items: flex-end;
-      gap: 6px;
-      height: 56px;
-    }
-    .mini-bar {
-      flex: 1;
-      border-radius: 4px;
-      background: rgba(255,255,255,0.15);
-    }
+    .inner-journal-label { font-size: 11px; font-weight: 500; color: var(--text-light); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; }
+    .inner-journal-title { font-family: 'Playfair Display', serif; font-style: italic; font-size: 18px; color: var(--rose-deep); margin-bottom: 10px; }
+    .inner-journal-text { font-weight: 300; font-size: 14px; color: var(--text-light); line-height: 1.7; }
+    .inner-insights-card { background: var(--rose-deep); border-radius: 24px; padding: 28px; flex: 1; }
+    .inner-insights-label { font-size: 11px; font-weight: 300; color: rgba(255,255,255,0.5); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; }
+    .inner-insights-title { font-family: 'Playfair Display', serif; font-style: italic; font-size: 18px; color: var(--cream); margin-bottom: 20px; }
+    .mini-bars { display: flex; align-items: flex-end; gap: 6px; height: 56px; }
+    .mini-bar { flex: 1; border-radius: 4px; background: rgba(255,255,255,0.15); }
     .mini-bar.active { background: rgba(255,255,255,0.6); }
 
     /* ── Atmosphere ────────────────────────────────────────────────────────── */
     .atmosphere {
-      width: 100%;
-      height: 500px;
-      overflow: hidden;
-      position: relative;
+      width: 100%; height: 500px;
+      overflow: hidden; position: relative;
       background: linear-gradient(135deg, #8B6B6B 0%, #C4956A 50%, #E8C49A 100%);
     }
-    .atmosphere-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(42, 26, 26, 0.3);
-    }
+    .atmosphere-overlay { position: absolute; inset: 0; background: rgba(42,26,26,0.3); }
     .atmosphere-blob {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 600px;
-      height: 400px;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 600px; height: 400px;
       border-radius: 50%;
       background: radial-gradient(circle, rgba(255,220,200,0.35) 0%, transparent 65%);
       filter: blur(40px);
     }
     .atmosphere-text {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      z-index: 1;
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; z-index: 1;
     }
     .atmosphere-text p {
       font-family: 'Playfair Display', serif;
       font-style: italic;
-      font-size: clamp(28px, 4vw, 52px);
+      font-size: clamp(28px,4vw,52px);
       color: var(--cream);
       line-height: 1.3;
       max-width: 700px;
@@ -695,44 +654,20 @@
     }
 
     /* ── Pillars ───────────────────────────────────────────────────────────── */
-    .pillars-section {
-      padding: 100px clamp(24px, 5vw, 80px);
-    }
+    .pillars-section { padding: 100px clamp(24px,5vw,80px); }
     .pillars-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3,1fr);
       gap: 60px;
       margin-top: 60px;
     }
-    .pillar-icon {
-      font-size: 20px;
-      color: var(--rose);
-      margin-bottom: 18px;
-    }
-    .pillar-title {
-      font-family: 'Playfair Display', serif;
-      font-style: italic;
-      font-size: 24px;
-      color: var(--rose-deep);
-      margin-bottom: 14px;
-    }
-    .pillar-body {
-      font-weight: 300;
-      font-size: 15px;
-      color: var(--text-light);
-      line-height: 1.7;
-    }
+    .pillar-icon { font-size: 20px; color: var(--rose); margin-bottom: 18px; }
+    .pillar-title { font-family: 'Playfair Display', serif; font-style: italic; font-size: 24px; color: var(--rose-deep); margin-bottom: 14px; }
+    .pillar-body  { font-weight: 300; font-size: 15px; color: var(--text-light); line-height: 1.7; }
 
     /* ── Testimonials ──────────────────────────────────────────────────────── */
-    .testimonials-section {
-      padding: 80px clamp(24px, 5vw, 80px);
-      background: var(--cream);
-    }
-    .testimonials-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 32px;
-    }
+    .testimonials-section { padding: 80px clamp(24px,5vw,80px); background: var(--cream); }
+    .testimonials-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 32px; }
     .testimonial {
       padding: 32px;
       background: var(--white);
@@ -747,106 +682,80 @@
       line-height: 1.5;
       margin-bottom: 16px;
     }
-    .testimonial-attr {
-      font-weight: 300;
-      font-size: 13px;
-      color: var(--text-light);
-    }
+    .testimonial-attr { font-weight: 300; font-size: 13px; color: var(--text-light); }
 
     /* ── Privacy ───────────────────────────────────────────────────────────── */
-    .privacy-section {
-      background: var(--bg-dark);
-      padding: 100px clamp(24px, 5vw, 80px);
-    }
+    .privacy-section { background: var(--bg-dark); padding: 100px clamp(24px,5vw,80px); }
     .privacy-section .section-label { color: var(--rose-mid); }
     .privacy-heading {
       font-family: 'Playfair Display', serif;
       font-style: italic;
-      font-size: clamp(36px, 5vw, 52px);
+      font-size: clamp(36px,5vw,52px);
       color: var(--cream);
       line-height: 1.2;
       margin-bottom: 60px;
     }
-    .privacy-cards {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
+    .privacy-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
     .privacy-card {
       background: var(--rose-deep);
       border-radius: 24px;
       padding: 32px;
+      transition: transform 0.3s ease;
     }
-    .privacy-card-icon {
-      font-size: 22px;
-      color: var(--rose-light);
-      margin-bottom: 16px;
-    }
-    .privacy-card h3 {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px;
-      color: var(--cream);
-      margin-bottom: 12px;
-    }
-    .privacy-card p {
-      font-weight: 300;
-      font-size: 14px;
-      color: var(--rose-light);
-      line-height: 1.7;
-    }
+    .privacy-card:hover { transform: translateY(-4px); }
+    .privacy-card-icon { font-size: 22px; color: var(--rose-light); margin-bottom: 16px; }
+    .privacy-card h3 { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--cream); margin-bottom: 12px; }
+    .privacy-card p   { font-weight: 300; font-size: 14px; color: var(--rose-light); line-height: 1.7; }
 
     /* ── CTA + Pricing ─────────────────────────────────────────────────────── */
-    .cta-section {
-      background: var(--bg);
-      padding: 120px clamp(24px, 5vw, 80px);
-      text-align: center;
-    }
+    .cta-section { background: var(--bg); padding: 120px clamp(24px,5vw,80px); text-align: center; }
     .cta-heading {
       font-family: 'Playfair Display', serif;
       font-style: italic;
-      font-size: clamp(36px, 5vw, 52px);
+      font-size: clamp(36px,5vw,52px);
       color: var(--rose-deep);
       margin-bottom: 16px;
+      display: inline-block;
     }
-    .cta-sub {
-      font-weight: 300;
-      font-size: 18px;
-      color: var(--text-light);
+    .cta-heading.shine {
+      background: linear-gradient(
+        90deg,
+        var(--rose-deep) 0%,
+        var(--rose-deep) 30%,
+        #E8C0C0 50%,
+        var(--rose-deep) 70%,
+        var(--rose-deep) 100%
+      );
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shine 1.8s ease forwards;
     }
-    .download-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      margin-top: 40px;
-      flex-wrap: wrap;
-    }
+    .cta-sub { font-weight: 300; font-size: 18px; color: var(--text-light); }
+    .download-buttons { display: flex; justify-content: center; gap: 16px; margin-top: 40px; flex-wrap: wrap; }
     .store-btn {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      display: flex; align-items: center; gap: 10px;
       padding: 14px 24px;
       border-radius: 14px;
       border: 1.5px solid var(--rose-light);
       color: var(--rose-deep);
-      font-weight: 400;
-      font-size: 15px;
+      font-weight: 400; font-size: 15px;
       transition: all 0.2s;
       cursor: pointer;
     }
     .store-btn:hover { border-color: var(--rose); transform: translateY(-2px); }
-    .store-btn-filled {
-      background: var(--rose-deep);
-      border-color: var(--rose-deep);
-      color: white;
-    }
+    .store-btn-filled { background: var(--rose-deep); border-color: var(--rose-deep); color: white; }
     .store-btn-filled:hover { opacity: 0.85; border-color: var(--rose-deep); }
     .store-icon { font-size: 20px; }
     .store-label { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; }
-    .store-label-top { font-size: 10px; font-weight: 300; opacity: 0.7; }
+    .store-label-top  { font-size: 10px; font-weight: 300; opacity: 0.7; }
     .store-label-main { font-size: 15px; font-weight: 600; }
+
+    /* Pricing */
     .pricing-cards {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3,1fr);
       gap: 20px;
       margin-top: 80px;
       text-align: left;
@@ -857,87 +766,54 @@
       padding: 36px;
       position: relative;
       border: 2px solid transparent;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .pricing-card:not(.pricing-card-popular):not(.pricing-card-dark):hover {
+      transform: translateY(-8px);
+      box-shadow: 0 24px 60px rgba(92,74,74,0.13);
     }
     .pricing-card-popular {
       border-color: var(--rose-light);
       transform: scale(1.02);
     }
+    .pricing-card-popular:hover {
+      transform: scale(1.02) translateY(-8px);
+      box-shadow: 0 24px 60px rgba(92,74,74,0.15);
+    }
     .pricing-card-dark {
       background: var(--rose-deep);
     }
+    .pricing-card-dark:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 24px 60px rgba(42,26,26,0.25);
+    }
     .popular-badge {
       position: absolute;
-      top: -14px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: -14px; left: 50%; transform: translateX(-50%);
       background: var(--rose);
       color: white;
       border-radius: 20px;
       padding: 4px 16px;
-      font-size: 11px;
-      font-weight: 500;
+      font-size: 11px; font-weight: 500;
       white-space: nowrap;
       letter-spacing: 0.5px;
     }
-    .pricing-plan {
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 2px;
-      color: var(--text-light);
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
+    .pricing-plan { font-size: 12px; font-weight: 600; letter-spacing: 2px; color: var(--text-light); text-transform: uppercase; margin-bottom: 8px; }
     .pricing-plan-dark { color: var(--rose-light); }
-    .pricing-price {
-      font-family: 'Playfair Display', serif;
-      font-size: 44px;
-      font-weight: 700;
-      color: var(--rose-deep);
-      line-height: 1;
-      margin-bottom: 4px;
-    }
+    .pricing-price { font-family: 'Playfair Display', serif; font-size: 44px; font-weight: 700; color: var(--rose-deep); line-height: 1; margin-bottom: 4px; }
     .pricing-price-dark { color: var(--cream); }
-    .pricing-price span {
-      font-size: 16px;
-      font-weight: 400;
-      color: var(--text-light);
-    }
+    .pricing-price span { font-size: 16px; font-weight: 400; color: var(--text-light); }
     .pricing-price-dark span { color: var(--rose-light); }
-    .pricing-divider {
-      height: 1px;
-      background: rgba(213,180,180,0.3);
-      margin: 24px 0;
-    }
+    .pricing-divider { height: 1px; background: rgba(213,180,180,0.3); margin: 24px 0; }
     .pricing-divider-dark { background: rgba(255,255,255,0.1); }
-    .pricing-features {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 32px;
-    }
-    .pricing-features li {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      font-weight: 300;
-      font-size: 14px;
-      color: var(--text-mid);
-    }
-    .pricing-features li .check {
-      color: var(--rose);
-      font-size: 14px;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-    .pricing-features-dark li { color: var(--rose-light); }
+    .pricing-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 32px; }
+    .pricing-features li { display: flex; align-items: flex-start; gap: 10px; font-weight: 300; font-size: 14px; color: var(--text-mid); }
+    .pricing-features li .check { color: var(--rose); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+    .pricing-features-dark li  { color: var(--rose-light); }
     .pricing-features-dark .check { color: var(--rose-light); }
     .pricing-btn {
-      width: 100%;
-      padding: 14px;
-      border-radius: 50px;
-      font-size: 15px;
-      font-weight: 500;
+      width: 100%; padding: 14px; border-radius: 50px;
+      font-size: 15px; font-weight: 500;
       font-family: 'Outfit', sans-serif;
       cursor: pointer;
       border: 1.5px solid var(--rose-light);
@@ -946,59 +822,24 @@
       transition: all 0.2s;
     }
     .pricing-btn:hover { background: var(--rose-pale); transform: translateY(-1px); }
-    .pricing-btn-filled {
-      background: var(--rose);
-      border-color: var(--rose);
-      color: white;
-    }
+    .pricing-btn-filled { background: var(--rose); border-color: var(--rose); color: white; }
     .pricing-btn-filled:hover { background: var(--rose-dark); border-color: var(--rose-dark); }
 
     /* ── Footer ────────────────────────────────────────────────────────────── */
-    footer {
-      background: var(--bg-dark);
-      padding: 60px clamp(24px, 5vw, 80px) 40px;
-    }
+    footer { background: var(--bg-dark); padding: 60px clamp(24px,5vw,80px) 40px; }
     .footer-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
+      display: flex; justify-content: space-between; align-items: flex-start;
       padding-bottom: 32px;
       border-bottom: 1px solid rgba(213,180,180,0.1);
       margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 24px;
+      flex-wrap: wrap; gap: 24px;
     }
-    .footer-logo-text {
-      font-family: 'Playfair Display', serif;
-      font-style: italic;
-      font-size: 24px;
-      color: var(--cream);
-      margin-bottom: 8px;
-    }
-    .footer-tagline {
-      font-weight: 300;
-      font-size: 14px;
-      color: var(--rose-light);
-    }
-    .footer-links {
-      display: flex;
-      gap: 28px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .footer-links a {
-      font-weight: 300;
-      font-size: 14px;
-      color: var(--rose);
-      transition: color 0.2s;
-    }
+    .footer-logo-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: 24px; color: var(--cream); margin-bottom: 8px; }
+    .footer-tagline   { font-weight: 300; font-size: 14px; color: var(--rose-light); }
+    .footer-links { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+    .footer-links a { font-weight: 300; font-size: 14px; color: var(--rose); transition: color 0.2s; }
     .footer-links a:hover { color: var(--rose-light); }
-    .footer-copy {
-      text-align: center;
-      font-weight: 300;
-      font-size: 13px;
-      color: var(--rose-dark);
-    }
+    .footer-copy { text-align: center; font-weight: 300; font-size: 13px; color: var(--rose-dark); }
 
     /* ── Responsive ────────────────────────────────────────────────────────── */
     @media (max-width: 768px) {
@@ -1006,46 +847,46 @@
         grid-template-columns: 1fr;
         padding-top: 100px;
         padding-bottom: 60px;
-        gap: 60px;
+        gap: 80px;
       }
-      .hero-right { order: 2; min-height: 500px; }
-      .hero-left { order: 1; }
-      .card-clarity { left: -10px; }
-      .card-streak  { left: -10px; }
-      .card-quote   { right: -10px; }
-      .card-mood    { right: -10px; }
+      .hero-right { order: 2; min-height: 560px; }
+      .hero-left  { order: 1; }
+
+      /* Pull floating cards closer on mobile */
+      .card-clarity { left: -60px; top: 40px; }
+      .card-mood    { right: -50px; top: 100px; }
+      .card-streak  { left: -50px; bottom: 100px; }
+      .card-quote   { right: -50px; bottom: 50px; }
 
       .feels-cards,
       .pillars-grid,
       .testimonials-grid,
       .privacy-cards,
-      .pricing-cards {
-        grid-template-columns: 1fr;
-      }
+      .pricing-cards { grid-template-columns: 1fr; }
+
       .feels-card-dark { transform: none; }
+      .feels-card-dark:hover { transform: translateY(-6px); }
       .pricing-card-popular { transform: none; }
+      .pricing-card-popular:hover { transform: translateY(-8px); }
 
-      .inner-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .nav-links { display: none; }
-
+      .inner-grid { grid-template-columns: 1fr; }
+      .nav-links  { display: none; }
       .atmosphere { height: 320px; }
     }
     @media (max-width: 480px) {
-      .phone { width: 240px; height: 480px; }
+      .phone-wrap { width: 240px; height: 500px; }
+      .phone { width: 240px; height: 500px; }
       .phone-glow { width: 320px; height: 320px; }
-      .hero-right { min-height: 420px; }
+      .hero-right { min-height: 460px; }
+      .card-clarity { display: none; }
+      .card-streak  { display: none; }
     }
   </style>
 </head>
 <body>
 
-  <!-- ══════════════════════════════════════════════════════════
-       NAV
-  ══════════════════════════════════════════════════════════ -->
-  <nav>
+  <!-- NAV ─────────────────────────────────────────────────────────────────── -->
+  <nav id="main-nav">
     <div class="nav-logo">
       <span class="sparkle">✦</span>
       <span class="logo-text">Aevi</span>
@@ -1058,9 +899,7 @@
     <button class="nav-cta">Get Aevi</button>
   </nav>
 
-  <!-- ══════════════════════════════════════════════════════════
-       HERO
-  ══════════════════════════════════════════════════════════ -->
+  <!-- HERO ────────────────────────────────────────────────────────────────── -->
   <section class="hero">
     <div class="hero-left">
       <p class="hero-label">✦ Private AI Companion</p>
@@ -1093,86 +932,110 @@
     <div class="hero-right">
       <div class="phone-glow"></div>
 
-      <!-- Floating cards -->
-      <div class="float-card card-clarity float">
-        <div class="float-card-label">Live now</div>
-        <div class="float-card-value">87%</div>
-        <div class="float-card-sub">Clarity score</div>
-      </div>
+      <!-- Phone + hugging cards share the same relative wrapper -->
+      <div class="phone-wrap">
 
-      <div class="float-card card-mood float-delayed" style="background:var(--rose-deep); padding: 10px 18px; border-radius: 50px;">
-        <span style="font-size:13px; font-weight:500; color:white;">+ Reflective</span>
-      </div>
-
-      <div class="float-card card-streak float-delayed2">
-        <div class="float-card-label">Insight</div>
-        <div style="font-size:15px; font-weight:600; color:var(--rose-deep);">7-day streak ✦</div>
-      </div>
-
-      <div class="float-card card-quote float">
-        <p>"I finally feel understood."</p>
-        <p class="quote-attr">— Beta user</p>
-      </div>
-
-      <!-- Phone mockup -->
-      <div class="phone">
-        <div class="phone-bar">
-          <div class="phone-notch"></div>
+        <!-- Floating card 1: top-left clarity -->
+        <div class="float-card card-clarity">
+          <div class="float-card-label">Live now</div>
+          <div class="float-card-value">87%</div>
+          <div class="float-card-sub">Clarity score</div>
         </div>
-        <div class="phone-screen">
-          <div class="phone-header">
-            <div class="phone-header-name">✦ Aevi</div>
-            <div class="phone-header-sub">Your companion</div>
-          </div>
-          <div class="bubble bubble-aevi">
-            How are you carrying yourself today? Sometimes the weight shows before the words do.
-          </div>
-          <div class="bubble bubble-user">
-            Honestly, a bit scattered. I have so many ideas but can't focus on any of them.
-          </div>
-          <div class="bubble bubble-aevi">
-            That tension between abundance and clarity — I've noticed that's often when your best thinking is actually about to arrive. What feels most urgent right now?
-          </div>
-          <div class="bubble bubble-user">
-            I think I'm scared of choosing the wrong thing.
-          </div>
+
+        <!-- Floating card 2: top-right mood badge -->
+        <div class="float-card card-mood">
+          <span>+ Reflective</span>
         </div>
-        <div class="phone-input-bar">
-          <div class="phone-input-pill"></div>
-          <div class="phone-send-btn">→</div>
+
+        <!-- Floating card 3: bottom-left streak -->
+        <div class="float-card card-streak">
+          <div class="float-card-label">Insight</div>
+          <div style="font-size:15px;font-weight:600;color:var(--rose-deep);">7-day streak ✦</div>
+        </div>
+
+        <!-- Floating card 4: bottom-right quote -->
+        <div class="float-card card-quote">
+          <p>"I finally feel understood."</p>
+          <p class="quote-attr">— Beta user</p>
+        </div>
+
+        <!-- Phone frame -->
+        <div class="phone">
+          <!-- Status bar -->
+          <div class="phone-status-bar">
+            <div class="phone-notch"></div>
+          </div>
+
+          <!-- Chat header -->
+          <div class="phone-chat-header">
+            <div class="phone-avatar">✦</div>
+            <div class="phone-header-info">
+              <div class="phone-chat-name">Aevi</div>
+              <div class="phone-chat-status">● REFLECTIVE</div>
+            </div>
+            <div class="phone-search-icon">⌕</div>
+          </div>
+
+          <!-- Messages -->
+          <div class="phone-screen">
+            <div class="bubble bubble-aevi">
+              How are you carrying yourself today? Sometimes the weight shows before the words do.
+            </div>
+            <div class="bubble bubble-user">
+              Scattered. Too many ideas, can't focus on any.
+            </div>
+            <div class="bubble bubble-aevi">
+              That tension between abundance and clarity — it's often when your best thinking is about to arrive.
+            </div>
+            <div class="bubble bubble-user">
+              I think I'm scared of choosing wrong.
+            </div>
+          </div>
+
+          <!-- Input -->
+          <div class="phone-input-area">
+            <div class="phone-input-pill">
+              <span class="phone-placeholder">Write something...</span>
+            </div>
+            <div class="phone-send-btn">→</div>
+          </div>
+
+          <!-- Tab bar -->
+          <div class="phone-tab-bar">
+            <div class="phone-tab active">◉</div>
+            <div class="phone-tab">▤</div>
+            <div class="phone-tab">◈</div>
+            <div class="phone-tab">⊙</div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════════════════
-       MARQUEE
-  ══════════════════════════════════════════════════════════ -->
+  <!-- MARQUEE ──────────────────────────────────────────────────────────────── -->
   <div class="marquee-section">
     <div class="marquee-track">
-      <span class="marquee-text">REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · &nbsp;</span>
-      <span class="marquee-text">REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · &nbsp;</span>
+      <span class="marquee-text">REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · &nbsp;&nbsp;</span>
+      <span class="marquee-text">REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · REFLECT · EVOLVE · UNDERSTAND · GROW · DOWNLOAD · REMEMBER · &nbsp;&nbsp;</span>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════
-       HOW IT FEELS
-  ══════════════════════════════════════════════════════════ -->
+  <!-- HOW IT FEELS ─────────────────────────────────────────────────────────── -->
   <section class="feels-section fade-up" id="features">
     <p class="section-label">Feeling First</p>
     <h2 class="section-heading">Not what it does —<br><em>how it feels.</em></h2>
     <div class="feels-cards">
-      <div class="feels-card">
+      <div class="feels-card" style="transition-delay:0s">
         <div class="feels-icon">◎</div>
         <h3>It remembers you.</h3>
         <p>Every thought you share becomes part of how Aevi knows you. Over time, patterns emerge — ones you didn't know existed.</p>
       </div>
-      <div class="feels-card feels-card-dark">
+      <div class="feels-card feels-card-dark" style="transition-delay:0.15s">
         <div class="feels-icon feels-icon-dark">✦</div>
         <h3>It reflects with you.</h3>
         <p>Not just answers — a presence that thinks alongside you, gently surfacing what matters beneath what's said.</p>
       </div>
-      <div class="feels-card">
+      <div class="feels-card" style="transition-delay:0.3s">
         <div class="feels-icon">◇</div>
         <h3>It grows with you.</h3>
         <p>The more you share, the more Aevi understands. Your companion becomes uniquely yours — shaped by your story.</p>
@@ -1180,9 +1043,7 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════════════════
-       INNER WORLD
-  ══════════════════════════════════════════════════════════ -->
+  <!-- INNER WORLD ──────────────────────────────────────────────────────────── -->
   <section class="inner-section fade-up">
     <p class="section-label">Inner World</p>
     <h2 class="section-heading">Your inner world,<br><em>finally articulated.</em></h2>
@@ -1193,7 +1054,7 @@
           I notice you often mention feeling "behind." Behind on what — and according to whose timeline?
         </div>
         <div class="inner-bubble inner-bubble-user">
-          That's a good question. Maybe behind on who I thought I'd be by now.
+          Maybe behind on who I thought I'd be by now.
         </div>
         <div class="inner-bubble inner-bubble-aevi">
           That version of you — when was she written? Because the person writing today sounds significantly wiser.
@@ -1222,9 +1083,7 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════════════════
-       ATMOSPHERE
-  ══════════════════════════════════════════════════════════ -->
+  <!-- ATMOSPHERE ───────────────────────────────────────────────────────────── -->
   <div class="atmosphere fade-up">
     <div class="atmosphere-blob"></div>
     <div class="atmosphere-overlay"></div>
@@ -1233,9 +1092,7 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════════
-       THREE PILLARS
-  ══════════════════════════════════════════════════════════ -->
+  <!-- THREE PILLARS ────────────────────────────────────────────────────────── -->
   <section class="pillars-section fade-up">
     <div class="pillars-grid">
       <div>
@@ -1256,29 +1113,25 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════════════════
-       TESTIMONIALS
-  ══════════════════════════════════════════════════════════ -->
-  <section class="testimonials-section fade-up">
+  <!-- TESTIMONIALS ─────────────────────────────────────────────────────────── -->
+  <section class="testimonials-section">
     <div class="testimonials-grid">
-      <div class="testimonial">
+      <div class="testimonial anim-from-left">
         <p class="testimonial-quote">"For the first time, I felt heard — by myself."</p>
         <p class="testimonial-attr">— Beta user</p>
       </div>
-      <div class="testimonial">
+      <div class="testimonial anim-from-bottom">
         <p class="testimonial-quote">"I open Aevi before I open anything else in the morning."</p>
         <p class="testimonial-attr">— Beta user</p>
       </div>
-      <div class="testimonial">
+      <div class="testimonial anim-from-right">
         <p class="testimonial-quote">"It's like therapy homework, but I actually do it."</p>
         <p class="testimonial-attr">— Beta user</p>
       </div>
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════════════════
-       PRIVACY
-  ══════════════════════════════════════════════════════════ -->
+  <!-- PRIVACY ──────────────────────────────────────────────────────────────── -->
   <section class="privacy-section fade-up" id="privacy">
     <p class="section-label">Built Different</p>
     <div class="privacy-heading">
@@ -1287,17 +1140,17 @@
       <em>Yours.</em>
     </div>
     <div class="privacy-cards">
-      <div class="privacy-card">
+      <div class="privacy-card" style="transition-delay:0s">
         <div class="privacy-card-icon">🔒</div>
         <h3>End-to-end encrypted</h3>
         <p>Your conversations are yours alone. We cannot read them — by design, not by policy.</p>
       </div>
-      <div class="privacy-card">
+      <div class="privacy-card" style="transition-delay:0.15s">
         <div class="privacy-card-icon">◇</div>
         <h3>Never sold or shared</h3>
         <p>Your data is not a product. It never will be. Aevi is funded by your subscription, not your attention.</p>
       </div>
-      <div class="privacy-card">
+      <div class="privacy-card" style="transition-delay:0.3s">
         <div class="privacy-card-icon">✦</div>
         <h3>Delete anytime</h3>
         <p>One tap removes everything — your messages, your journal, your memories. No questions asked.</p>
@@ -1305,11 +1158,9 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════════════════
-       CTA + PRICING
-  ══════════════════════════════════════════════════════════ -->
+  <!-- CTA + PRICING ────────────────────────────────────────────────────────── -->
   <section class="cta-section fade-up" id="cta">
-    <h2 class="cta-heading">Your companion awaits.</h2>
+    <h2 class="cta-heading" id="cta-heading">Your companion awaits.</h2>
     <p class="cta-sub">Available on iOS and Android today. Free to start.</p>
 
     <div class="download-buttons">
@@ -1330,8 +1181,7 @@
     </div>
 
     <div class="pricing-cards">
-      <!-- Free -->
-      <div class="pricing-card">
+      <div class="pricing-card" style="transition-delay:0s">
         <div class="pricing-plan">Free</div>
         <div class="pricing-price">$0<span>/forever</span></div>
         <div class="pricing-divider"></div>
@@ -1343,8 +1193,7 @@
         <button class="pricing-btn">Download Free</button>
       </div>
 
-      <!-- Plus -->
-      <div class="pricing-card pricing-card-popular">
+      <div class="pricing-card pricing-card-popular" style="transition-delay:0.15s">
         <div class="popular-badge">MOST POPULAR</div>
         <div class="pricing-plan">Plus</div>
         <div class="pricing-price">€9<span>/month</span></div>
@@ -1359,8 +1208,7 @@
         <button class="pricing-btn pricing-btn-filled">Start Plus</button>
       </div>
 
-      <!-- Pro -->
-      <div class="pricing-card pricing-card-dark">
+      <div class="pricing-card pricing-card-dark" style="transition-delay:0.3s">
         <div class="pricing-plan pricing-plan-dark">Pro</div>
         <div class="pricing-price pricing-price-dark">€19<span>/month</span></div>
         <div class="pricing-divider pricing-divider-dark"></div>
@@ -1375,9 +1223,7 @@
     </div>
   </section>
 
-  <!-- ══════════════════════════════════════════════════════════
-       FOOTER
-  ══════════════════════════════════════════════════════════ -->
+  <!-- FOOTER ───────────────────────────────────────────────────────────────── -->
   <footer id="about">
     <div class="footer-top">
       <div>
@@ -1390,42 +1236,62 @@
         <a href="#">Contact</a>
       </div>
     </div>
-    <div class="footer-copy">© 2024 Aevi. Made with care.</div>
+    <div class="footer-copy">© 2025 Aevi. Made with care.</div>
   </footer>
 
-  <!-- ══════════════════════════════════════════════════════════
-       JS — Scroll animations
-  ══════════════════════════════════════════════════════════ -->
   <script>
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-          }
-        });
-      },
-      { threshold: 0.12 }
-    );
-
-    document.querySelectorAll('.fade-up').forEach((el) => observer.observe(el));
-
-    // Stagger children of multi-card grids
-    document.querySelectorAll('.feels-cards, .pillars-grid, .testimonials-grid, .privacy-cards, .pricing-cards').forEach((grid) => {
-      Array.from(grid.children).forEach((child, i) => {
-        child.style.transitionDelay = `${i * 0.12}s`;
-      });
-    });
-
-    // Nav background on scroll
-    const navEl = document.querySelector('nav');
+    // ── Nav scroll glass ──────────────────────────────────────────────────────
+    const nav = document.getElementById('main-nav');
     window.addEventListener('scroll', () => {
-      if (window.scrollY > 20) {
-        navEl.style.background = 'rgba(245,238,234,0.97)';
-      } else {
-        navEl.style.background = 'rgba(245,238,234,0.85)';
-      }
+      nav.classList.toggle('scrolled', window.scrollY > 60);
     }, { passive: true });
+
+    // ── Intersection observer: fade-up sections ───────────────────────────────
+    const fadeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          fadeObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.fade-up').forEach(el => fadeObserver.observe(el));
+
+    // ── Intersection observer: directional testimonials ───────────────────────
+    const slideObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // Stagger the three testimonials
+          const siblings = entry.target.parentElement.children;
+          Array.from(siblings).forEach((el, i) => {
+            setTimeout(() => el.classList.add('visible'), i * 140);
+          });
+          slideObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+
+    // Observe the first testimonial to trigger stagger for all three
+    const firstTestimonial = document.querySelector('.anim-from-left');
+    if (firstTestimonial) slideObserver.observe(firstTestimonial);
+
+    // ── CTA heading shine ─────────────────────────────────────────────────────
+    const ctaHeading = document.getElementById('cta-heading');
+    const shineObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          ctaHeading.classList.add('shine');
+          shineObserver.unobserve(ctaHeading);
+        }
+      });
+    }, { threshold: 0.6 });
+    if (ctaHeading) shineObserver.observe(ctaHeading);
+
+    // ── Feels-card stagger on parent section becoming visible ─────────────────
+    // Cards already have inline transition-delay — IntersectionObserver on
+    // the parent .fade-up fires classList.add('visible') which kicks off
+    // the cascade automatically since the children are inside the fading parent.
   </script>
 </body>
 </html>
