@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms of Service — Aevi</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #FDF6F0;
+      color: #867070;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 16px;
+      line-height: 1.75;
+      padding: 48px 24px 80px;
+    }
+
+    .wrap { max-width: 680px; margin: 0 auto; }
+
+    /* ── Nav ── */
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 56px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .wordmark {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 26px;
+      font-style: italic;
+      color: #3D2B2B;
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .nav-links a { font-size: 13px; color: #B09090; text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover { color: #5C4A4A; }
+    .nav-links a.active { color: #3D2B2B; font-weight: 500; }
+
+    /* ── Page header ── */
+    .page-header {
+      margin-bottom: 48px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid rgba(160,120,120,0.15);
+    }
+    .page-header h1 {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 36px;
+      font-weight: normal;
+      font-style: italic;
+      color: #3D2B2B;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+    .meta { font-size: 13px; color: #B09090; }
+
+    /* ── Sections ── */
+    section { margin-bottom: 40px; }
+
+    h2 {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 17px;
+      font-weight: normal;
+      color: #3D2B2B;
+      margin-bottom: 12px;
+      padding-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    p { margin-bottom: 12px; color: #867070; }
+    p:last-child { margin-bottom: 0; }
+
+    ul { padding-left: 20px; margin-bottom: 12px; color: #867070; }
+    li { margin-bottom: 5px; }
+
+    a { color: #5C4A4A; text-decoration: underline; text-decoration-color: rgba(92,74,74,0.3); text-underline-offset: 3px; }
+    a:hover { text-decoration-color: #5C4A4A; }
+
+    strong { color: #5C4A4A; font-weight: 500; }
+
+    .callout {
+      background: rgba(155,104,104,0.07);
+      border-left: 3px solid rgba(155,104,104,0.25);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 15px;
+      color: #5C4A4A;
+    }
+
+    /* ── Pricing table ── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px;
+      background: rgba(160,120,120,0.15);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 16px 0 20px;
+      font-size: 14px;
+    }
+    .pricing-col { background: #FDF6F0; padding: 16px; }
+    .pricing-col-header { background: rgba(155,104,104,0.06); }
+    .plan-name {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 15px;
+      color: #3D2B2B;
+      margin-bottom: 4px;
+    }
+    .plan-price { font-size: 20px; color: #3D2B2B; font-weight: 500; margin-bottom: 2px; }
+    .plan-period { font-size: 12px; color: #B09090; margin-bottom: 10px; }
+    .plan-features { list-style: none; padding: 0; }
+    .plan-features li { font-size: 13px; color: #867070; margin-bottom: 4px; padding-left: 14px; position: relative; }
+    .plan-features li::before { content: '·'; position: absolute; left: 0; color: #C4A8A8; }
+
+    /* ── Disclaimer box ── */
+    .disclaimer {
+      background: rgba(92,74,74,0.06);
+      border: 1px solid rgba(92,74,74,0.15);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 12px 0;
+    }
+    .disclaimer p { font-size: 14px; margin-bottom: 8px; }
+    .disclaimer p:last-child { margin-bottom: 0; }
+    .disclaimer strong { color: #3D2B2B; }
+
+    /* ── Caps text ── */
+    .caps-block {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #9A8080;
+      background: rgba(155,104,104,0.04);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 10px 0;
+    }
+
+    /* ── Footer ── */
+    footer {
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(160,120,120,0.15);
+      text-align: center;
+    }
+    .footer-links { display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .footer-links a { font-size: 13px; color: #B09090; text-decoration: none; }
+    .footer-links a:hover { color: #5C4A4A; }
+    .footer-sep { font-size: 13px; color: #D5B4B4; }
+    .footer-brand { display: block; font-family: Georgia, 'Times New Roman', serif; font-size: 18px; font-style: italic; color: #C4A8A8; margin-bottom: 12px; }
+
+    @media (max-width: 560px) {
+      body { padding: 32px 16px 60px; }
+      .page-header h1 { font-size: 28px; }
+      .pricing-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <a href="https://myaevi.app" class="wordmark">Aevi</a>
+    <div class="nav-links">
+      <a href="https://myaevi.app">Home</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html" class="active">Terms of Service</a>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <h1>Terms of Service</h1>
+    <p class="meta">Last updated: May 2026</p>
+  </div>
+
+  <section>
+    <h2>1. Acceptance of Terms</h2>
+    <p>By downloading, installing, or using the Aevi app you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the app.</p>
+  </section>
+
+  <section>
+    <h2>2. Description of Service</h2>
+    <p>Aevi is a private AI companion application that helps users reflect on their thoughts, journal their experiences, and gain personal insights. The service is provided "as is" and we reserve the right to modify, suspend, or discontinue any feature at any time.</p>
+  </section>
+
+  <section>
+    <h2>3. Account Registration</h2>
+    <ul>
+      <li>You must be at least 13 years old to use Aevi.</li>
+      <li>You must provide accurate and complete information when creating an account.</li>
+      <li>You are responsible for maintaining the confidentiality of your login credentials.</li>
+      <li>You must notify us immediately of any unauthorised use of your account at <a href="mailto:legal@myaevi.app">legal@myaevi.app</a>.</li>
+      <li>One account per person — creating multiple accounts to circumvent usage limits is not permitted.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>4. Subscription Plans and Payments</h2>
+
+    <div class="pricing-grid">
+      <div class="pricing-col pricing-col-header">
+        <p class="plan-name">Free</p>
+        <p class="plan-price">€0</p>
+        <p class="plan-period">&nbsp;</p>
+        <ul class="plan-features">
+          <li>10 messages per day</li>
+          <li>Basic memory</li>
+          <li>Up to 5 journal entries</li>
+        </ul>
+      </div>
+      <div class="pricing-col pricing-col-header">
+        <p class="plan-name">Plus</p>
+        <p class="plan-price">€9.00</p>
+        <p class="plan-period">per month</p>
+        <ul class="plan-features">
+          <li>Unlimited messages</li>
+          <li>Full memory &amp; context</li>
+          <li>Unlimited journal entries</li>
+          <li>Insights dashboard</li>
+          <li>Content creator</li>
+        </ul>
+      </div>
+      <div class="pricing-col pricing-col-header">
+        <p class="plan-name">Pro</p>
+        <p class="plan-price">€19.00</p>
+        <p class="plan-period">per month</p>
+        <ul class="plan-features">
+          <li>Everything in Plus</li>
+          <li>Priority AI responses</li>
+          <li>Advanced insights</li>
+          <li>Remove Aevi watermark</li>
+        </ul>
+      </div>
+    </div>
+
+    <p><strong>Payment terms:</strong></p>
+    <ul>
+      <li>Subscriptions are billed monthly in advance.</li>
+      <li>Payments are processed securely by Stripe.</li>
+      <li>Subscriptions auto-renew unless cancelled before the renewal date.</li>
+      <li>You can cancel anytime through your device's subscription settings.</li>
+      <li>No refunds for partial billing periods already paid.</li>
+      <li>We reserve the right to change pricing with 30 days' notice.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>5. Your Content</h2>
+    <ul>
+      <li>You retain full ownership of all content you create in Aevi — including messages, journal entries, and personal reflections.</li>
+      <li>By using Aevi you grant us a limited, non-exclusive licence to process your content solely to provide the service to you.</li>
+      <li>We do not claim any ownership rights over your thoughts, writings, or personal reflections.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>6. Acceptable Use</h2>
+    <p>You agree not to use Aevi to:</p>
+    <ul>
+      <li>Violate any applicable laws or regulations.</li>
+      <li>Harass, threaten, intimidate, or harm any person.</li>
+      <li>Upload or transmit any malicious code, viruses, or harmful content.</li>
+      <li>Attempt to gain unauthorised access to our systems or infrastructure.</li>
+      <li>Reverse engineer, decompile, or disassemble any part of the app.</li>
+      <li>Create multiple accounts to circumvent usage limits.</li>
+      <li>Use the service for any commercial purpose without our written consent.</li>
+      <li>Impersonate any person or entity.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>7. AI Disclaimer — Important</h2>
+    <div class="disclaimer">
+      <p><strong>Aevi is not a licensed therapist, psychologist, doctor, lawyer, or financial advisor.</strong></p>
+      <p>Aevi's responses are generated by artificial intelligence and are provided for personal reflection purposes only. They should not be relied upon as professional advice of any kind — medical, psychological, legal, or financial.</p>
+      <p>If you are experiencing a mental health crisis or emergency, please contact emergency services or a qualified mental health professional immediately.</p>
+      <p>We are not liable for any decisions made based on Aevi's AI-generated responses.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>8. Intellectual Property</h2>
+    <p>The Aevi name, logo, app design, and all related intellectual property are owned by us. You may not copy, reproduce, modify, distribute, or create derivative works based on any part of the app without our written permission.</p>
+  </section>
+
+  <section>
+    <h2>9. Privacy</h2>
+    <p>Your use of Aevi is also governed by our <a href="privacy.html">Privacy Policy</a>, which is incorporated into these Terms by reference. Please read it carefully.</p>
+  </section>
+
+  <section>
+    <h2>10. Disclaimers</h2>
+    <div class="caps-block">
+      THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, OR FREE FROM HARMFUL COMPONENTS. YOUR USE OF THE SERVICE IS AT YOUR SOLE RISK.
+    </div>
+  </section>
+
+  <section>
+    <h2>11. Limitation of Liability</h2>
+    <div class="caps-block">
+      TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW: (A) WE SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES; (B) OUR TOTAL LIABILITY TO YOU SHALL NOT EXCEED THE AMOUNT YOU PAID US IN THE 12 MONTHS PRECEDING THE CLAIM; (C) WE ARE NOT LIABLE FOR ANY LOSS OF DATA, LOSS OF PROFITS, OR BUSINESS INTERRUPTION.
+    </div>
+    <p style="margin-top:12px;">Nothing in these Terms limits liability for death or personal injury caused by negligence, fraud, or any other liability that cannot be excluded under applicable German or EU law.</p>
+  </section>
+
+  <section>
+    <h2>12. Indemnification</h2>
+    <p>You agree to indemnify and hold harmless Aevi and its operators from any claims, damages, losses, or expenses (including reasonable legal fees) arising from your use of the service or violation of these Terms.</p>
+  </section>
+
+  <section>
+    <h2>13. Termination</h2>
+    <ul>
+      <li>You may delete your account at any time through the app (Profile → Delete Account).</li>
+      <li>We reserve the right to suspend or terminate accounts that violate these Terms, with or without prior notice depending on severity.</li>
+      <li>Upon termination, your right to use the service ceases immediately.</li>
+      <li>Your data will be deleted in accordance with our Privacy Policy.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>14. Changes to Terms</h2>
+    <p>We may update these Terms from time to time. We will notify you of significant changes via email or in-app notification at least 30 days before they take effect. Continued use of the app after changes constitutes acceptance of the updated Terms.</p>
+  </section>
+
+  <section>
+    <h2>15. Governing Law and Disputes</h2>
+    <p>These Terms are governed by the laws of the Federal Republic of Germany. Any disputes arising from these Terms or your use of Aevi shall be subject to the exclusive jurisdiction of the courts of Munich, Germany.</p>
+    <p>If you are an EU consumer, you also benefit from the mandatory protective provisions of the consumer protection laws of your country of residence. The EU online dispute resolution platform is available at <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">ec.europa.eu/consumers/odr</a>. Our contact for ODR: <a href="mailto:legal@myaevi.app">legal@myaevi.app</a>.</p>
+  </section>
+
+  <section>
+    <h2>16. Severability</h2>
+    <p>If any provision of these Terms is found to be unenforceable, that provision will be modified to the minimum extent necessary to make it enforceable, and the remaining provisions will continue in full force and effect.</p>
+  </section>
+
+  <section>
+    <h2>17. Entire Agreement</h2>
+    <p>These Terms, together with our Privacy Policy, constitute the entire agreement between you and Aevi regarding your use of the service and supersede all prior agreements or understandings.</p>
+  </section>
+
+  <section>
+    <h2>18. Contact</h2>
+    <p>For any questions about these Terms:</p>
+    <p>
+      Email: <a href="mailto:legal@myaevi.app">legal@myaevi.app</a><br>
+      Location: Munich, Germany
+    </p>
+  </section>
+
+  <footer>
+    <span class="footer-brand">Aevi</span>
+    <div class="footer-links">
+      <a href="privacy.html">Privacy Policy</a>
+      <span class="footer-sep">·</span>
+      <a href="terms.html">Terms of Service</a>
+      <span class="footer-sep">·</span>
+      <a href="https://myaevi.app">myaevi.app</a>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>
