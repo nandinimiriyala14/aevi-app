@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aevi â Meet your alter ego.</title>
+<meta name="description" content="A private AI companion that remembers, reflects, and evolves with you.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#FDF6F0;--bg2:#F5EAE1;--dark:#3D2B2B;--rose:#867070;--orb:#9A6868;--soft:#C4A8A8;--cream:#EFE0D5;--white:#FFFAF7}
+a{text-decoration:none !important}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--dark);font-family:'Outfit',sans-serif;font-weight:300;overflow-x:hidden;line-height:1.7}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--cream);border-radius:3px}
+.btn{display:inline-block;background:var(--orb);color:var(--white);padding:.85rem 2.2rem;border-radius:100px;font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:400;letter-spacing:.02em;cursor:pointer;border:none;transition:all .3s}
+.btn:hover{background:var(--dark);transform:translateY(-2px);box-shadow:0 14px 36px rgba(61,43,43,.18)}
+.btn-ghost{display:inline-block;background:transparent;color:var(--rose);padding:.85rem 2.2rem;border-radius:100px;font-family:'Outfit',sans-serif;font-size:.9rem;font-weight:300;letter-spacing:.02em;cursor:pointer;border:1px solid rgba(154,104,104,.3);transition:all .3s}
+.btn-ghost:hover{border-color:var(--orb);color:var(--orb);transform:translateY(-2px)}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.1rem 5%;background:rgba(253,246,240,.9);backdrop-filter:blur(20px);transition:transform .3s ease}
+.nav-logo{font-family:'Playfair Display',serif;font-style:italic;font-size:1.5rem;color:var(--dark);display:flex;align-items:center;gap:.55rem}
+.logo-orb{width:26px;height:26px;background:var(--orb);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-links{display:flex;gap:2.5rem;list-style:none;align-items:center}
+.nav-links a{font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--rose);transition:color .2s}
+.nav-links a:hover{color:var(--dark)}
+.nav-badge{font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;background:rgba(154,104,104,.08);color:var(--orb);padding:.3rem .9rem;border-radius:100px;border:1px solid rgba(154,104,104,.15)}
+/* STRIP */
+.strip{background:var(--cream);text-align:center;padding:.6rem 1rem;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--rose);margin-top:60px;display:flex;align-items:center;justify-content:center;gap:.75rem}
+.strip-dot{width:6px;height:6px;background:var(--orb);border-radius:50%;animation:blink 2s ease-in-out infinite;flex-shrink:0}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+/* HERO */
+.hero{padding:6rem 5% 0;position:relative;overflow:hidden;min-height:95vh;display:flex;align-items:center}
+.hblob{position:absolute;border-radius:50%;pointer-events:none;filter:blur(90px)}
+.hb1{width:700px;height:700px;background:radial-gradient(circle,rgba(196,168,168,.45),transparent);top:-220px;right:-150px}
+.hb2{width:400px;height:400px;background:radial-gradient(circle,rgba(212,176,168,.3),transparent);bottom:0;left:-60px}
+.hero-inner{max-width:1140px;margin:0 auto;width:100%;display:grid;grid-template-columns:1.15fr .85fr;gap:4rem;align-items:center;position:relative;z-index:1;padding-bottom:4rem}
+.eyebrow{font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--soft);margin-bottom:1.5rem;display:flex;align-items:center;gap:.6rem}
+.live-dot{width:7px;height:7px;background:var(--orb);border-radius:50%;position:relative;flex-shrink:0}
+.live-dot::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1.5px solid var(--orb);animation:ripple 2s ease-out infinite}
+@keyframes ripple{from{transform:scale(1);opacity:.8}to{transform:scale(2.4);opacity:0}}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(3rem,5vw,5rem);line-height:1.05;letter-spacing:-.02em;color:var(--dark);margin-bottom:1.75rem}
+.hero h1 em{font-style:italic;color:var(--orb)}
+.hero-sub{font-size:1.05rem;color:var(--rose);line-height:1.8;margin-bottom:2.5rem;max-width:430px;font-weight:300}
+.hero-btns{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:2rem}
+.hero-social{display:flex;align-items:center;gap:.75rem;font-size:.78rem;color:var(--soft)}
+.avatars{display:flex}
+.av{width:26px;height:26px;border-radius:50%;background:var(--cream);border:2px solid var(--white);margin-left:-7px;font-size:.58rem;display:flex;align-items:center;justify-content:center;color:var(--rose);font-weight:500}
+.av:first-child{margin-left:0}
+/* PHONE */
+.hero-right{position:relative;display:flex;justify-content:center;padding-bottom:2rem}
+.phone-wrap{animation:float 7s ease-in-out infinite;position:relative}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-.5deg)}50%{transform:translateY(-16px) rotate(.5deg)}}
+.phone{width:248px;background:var(--dark);border-radius:44px;padding:11px;box-shadow:0 60px 120px rgba(61,43,43,.25),0 0 0 1px rgba(255,255,255,.05)}
+.notch{width:65px;height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin:0 auto 9px}
+.screen{background:var(--bg);border-radius:35px;overflow:hidden;min-height:460px;display:flex;flex-direction:column}
+.s-head{background:var(--bg2);padding:.85rem 1rem .75rem;display:flex;align-items:center;gap:.55rem;border-bottom:1px solid rgba(154,104,104,.08)}
+.s-av{width:26px;height:26px;background:var(--orb);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.s-name{font-size:.67rem;font-weight:500;color:var(--dark)}
+.s-status{font-size:.56rem;color:#5B8B5B;letter-spacing:.06em;text-transform:uppercase}
+.s-body{flex:1;padding:.9rem;display:flex;flex-direction:column;gap:.65rem;overflow:hidden}
+.m-ai{background:rgba(196,168,168,.16);border-radius:4px 13px 13px 13px;padding:.6rem .75rem;font-size:.61rem;line-height:1.5;color:var(--dark);max-width:87%}
+.m-you{background:var(--orb);border-radius:13px 13px 4px 13px;padding:.6rem .75rem;font-size:.61rem;line-height:1.5;color:var(--white);max-width:80%;align-self:flex-end}
+.s-input{margin:auto .9rem .9rem;background:var(--white);border:1px solid var(--cream);border-radius:20px;padding:.5rem .85rem;font-size:.58rem;color:var(--soft);display:flex;justify-content:space-between;align-items:center}
+.s-send{width:18px;height:18px;background:var(--orb);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.s-nav{background:var(--bg2);padding:.65rem .8rem;display:flex;justify-content:space-around;border-top:1px solid rgba(154,104,104,.08)}
+.sn{display:flex;flex-direction:column;align-items:center;gap:1.5px}
+.sn svg{width:14px;height:14px;stroke:var(--soft);fill:none;stroke-width:1.5}
+.sn.on svg{stroke:var(--orb)}
+.sn span{font-size:.5rem;color:var(--soft)}
+.sn.on span{color:var(--orb)}
+/* FLOATING CARDS */
+.chip{position:absolute;background:rgba(255,250,247,0.92);border-radius:18px;box-shadow:0 8px 32px rgba(61,43,43,.12),0 0 0 1px rgba(196,168,168,.12);padding:.7rem 1.1rem;display:flex;align-items:center;gap:.6rem;z-index:4;backdrop-filter:blur(12px)}
+.ch1{right:-85px;bottom:110px;animation:cf1 6s ease-in-out infinite;animation-delay:0s}
+.ch2{left:-90px;top:55px;animation:cf2 7.5s ease-in-out infinite;animation-delay:.5s}
+.ch3{right:-75px;top:60px;animation:cf3 5.5s ease-in-out infinite;animation-delay:1s}
+.ch4{left:-85px;bottom:130px;animation:cf4 8s ease-in-out infinite;animation-delay:1.5s}
+.ch5{left:50%;transform:translateX(-50%);bottom:-30px;animation:cf5 6.5s ease-in-out infinite;animation-delay:.8s;white-space:nowrap}
+@keyframes cf1{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-12px) rotate(1deg)}}
+@keyframes cf2{0%,100%{transform:translateY(0) rotate(1deg)}50%{transform:translateY(10px) rotate(-1deg)}}
+@keyframes cf3{0%,100%{transform:translateY(0) rotate(.5deg)}50%{transform:translateY(-8px) rotate(-.5deg)}}
+@keyframes cf4{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(11px) rotate(1.5deg)}}
+@keyframes cf5{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-7px)}}
+.ch-ico{width:30px;height:30px;background:var(--bg2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ch-ico svg{width:13px;height:13px;stroke:var(--orb);fill:none;stroke-width:2}
+.ch-t{font-size:.63rem;color:var(--dark)}
+.ch-t strong{display:block;font-size:.7rem;font-weight:500;color:var(--dark)}
+/* mood ring card */
+.mood-card{display:flex;flex-direction:column;align-items:center;gap:.3rem;min-width:80px}
+.mood-score{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--orb);line-height:1;font-style:italic}
+.mood-label{font-size:.55rem;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.mood-ring{position:relative;width:36px;height:36px;margin-bottom:.2rem}
+.mood-ring svg{transform:rotate(-90deg)}
+/* quote card */
+.quote-chip{flex-direction:column;align-items:flex-start;max-width:160px;padding:.85rem 1rem}
+.quote-chip .qc-text{font-family:'Playfair Display',serif;font-style:italic;font-size:.68rem;color:var(--dark);line-height:1.4;margin-bottom:.4rem}
+.quote-chip .qc-author{font-size:.58rem;color:var(--soft);display:flex;align-items:center;gap:.3rem}
+.quote-chip .qc-dot{width:4px;height:4px;background:var(--orb);border-radius:50%}
+/* status badge */
+.status-chip{padding:.5rem .9rem;border-radius:100px}
+.status-chip .status-dot{width:6px;height:6px;background:#5B8B5B;border-radius:50%;flex-shrink:0}
+.status-chip span{font-size:.65rem;letter-spacing:.06em;text-transform:uppercase;color:var(--dark)}
+/* phone glow */
+.phone-glow{position:absolute;width:320px;height:320px;background:radial-gradient(circle,rgba(154,104,104,.25),transparent 70%);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);z-index:0;animation:glowPulse 4s ease-in-out infinite}
+@keyframes glowPulse{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}}
+/* sparkles */
+.sparkle{position:absolute;pointer-events:none;z-index:1}
+.sparkle::before{content:'✦';font-size:.7rem;color:var(--soft);opacity:.4;animation:sparkleAnim var(--dur,4s) ease-in-out infinite;animation-delay:var(--del,0s)}
+@keyframes sparkleAnim{0%,100%{opacity:.2;transform:scale(.8) rotate(0deg)}50%{opacity:.7;transform:scale(1.2) rotate(180deg)}}
+/* WAVES */
+.wave{display:block;width:100%;line-height:0;overflow:hidden}
+.wave svg{display:block;width:100%}
+/* MARQUEE */
+.marquee{background:var(--cream);padding:.85rem 0;overflow:hidden}
+.marquee-inner{display:flex;white-space:nowrap;animation:scroll 28s linear infinite}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.mi{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--rose);padding:0 2.5rem;display:inline-flex;align-items:center;gap:.5rem}
+.mi .dot{color:var(--soft);font-size:.55rem}
+/* SECTIONS */
+section{padding:6rem 5%;position:relative}
+.inner{max-width:1100px;margin:0 auto}
+.s-tag{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--soft);margin-bottom:1rem;display:flex;align-items:center;gap:.65rem}
+.s-tag::before{content:'';width:22px;height:1px;background:var(--soft)}
+h2.t{font-family:'Playfair Display',serif;font-size:clamp(2rem,3.5vw,3.2rem);line-height:1.12;color:var(--dark)}
+h2.t em{font-style:italic;color:var(--orb)}
+/* PROBLEM */
+.problem{background:var(--dark);position:relative;overflow:hidden}
+.p-glow{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(154,104,104,.12),transparent 65%);top:-200px;right:-150px;pointer-events:none}
+.problem .s-tag{color:rgba(196,168,168,.45)}
+.problem h2.t{color:var(--white)}
+.problem h2.t em{color:var(--soft)}
+.problem-body{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:start;margin-top:3.5rem}
+.p-copy p{font-size:1.02rem;color:rgba(196,168,168,.72);line-height:1.85;margin-bottom:1.4rem}
+.p-list{display:flex;flex-direction:column;gap:2rem}
+.p-item{display:flex;gap:1.25rem;align-items:flex-start}
+.p-ico{flex-shrink:0;margin-top:3px;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+.p-ico svg{width:20px;height:20px;stroke:var(--orb);fill:none;stroke-width:1.5}
+.p-item h4{font-size:.95rem;font-weight:500;color:var(--white);margin-bottom:.3rem}
+.p-item p{font-size:.85rem;color:rgba(196,168,168,.55);line-height:1.6}
+/* WHAT */
+.what{background:var(--bg)}
+.what-intro{max-width:600px;margin-bottom:4.5rem}
+.what-intro p{font-size:1.02rem;color:var(--rose);line-height:1.8;margin-top:1rem}
+.what-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:3.5rem}
+.wcol-num{font-family:'Playfair Display',serif;font-style:italic;font-size:3.5rem;color:var(--cream);line-height:1;margin-bottom:.75rem}
+.wcol-divider{width:40px;height:1px;background:var(--cream);margin:1.25rem 0}
+.wcol h3{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--dark);margin-bottom:.75rem}
+.wcol p{font-size:.9rem;color:var(--rose);line-height:1.7}
+/* FEATURES */
+.features{background:var(--bg2)}
+.feat-rows{display:flex;flex-direction:column;gap:0;margin-top:4rem}
+.feat-row{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;padding:3.5rem 0;border-bottom:1px solid rgba(154,104,104,.08)}
+.feat-row:last-child{border-bottom:none}
+.feat-row.rev .feat-text{order:2}
+.feat-row.rev .feat-visual{order:1}
+.feat-ico{width:44px;height:44px;background:var(--white);border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:1.4rem;box-shadow:0 2px 12px rgba(61,43,43,.05)}
+.feat-ico svg{width:20px;height:20px;stroke:var(--orb);fill:none;stroke-width:1.5}
+.feat-text h3{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--dark);margin-bottom:.75rem}
+.feat-text p{font-size:.93rem;color:var(--rose);line-height:1.75;max-width:380px}
+.feat-pill{display:inline-block;margin-top:1.2rem;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);border-bottom:1px solid var(--cream);padding-bottom:2px}
+.feat-visual{display:flex;align-items:center;justify-content:center}
+.feat-bubble{background:var(--white);border-radius:28px;padding:2rem;max-width:320px;width:100%;box-shadow:0 8px 32px rgba(61,43,43,.05)}
+.fb-label{font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);margin-bottom:1rem}
+.fb-text{font-family:'Playfair Display',serif;font-style:italic;font-size:.95rem;color:var(--dark);line-height:1.6}
+.fb-bar{display:flex;flex-direction:column;gap:.6rem;margin-top:1.25rem}
+.fb-bar-item{display:flex;align-items:center;gap:.75rem}
+.fb-bar-item span{font-size:.7rem;color:var(--rose);width:55px}
+.fb-bar-track{flex:1;height:4px;background:var(--cream);border-radius:2px;overflow:hidden}
+.fb-bar-fill{height:100%;background:var(--orb);border-radius:2px}
+.insight-msg{background:var(--dark);border-radius:16px;padding:1.25rem 1.5rem}
+.im-head{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem}
+.im-text{font-family:'Playfair Display',serif;font-style:italic;font-size:.88rem;color:rgba(253,246,240,.85);line-height:1.6}
+.content-preview{display:flex;flex-direction:column;gap:.6rem}
+.cp-tag{font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);margin-bottom:.5rem}
+.cp-item{display:flex;align-items:center;gap:.75rem;padding:.65rem .9rem;background:var(--bg);border-radius:10px;font-size:.75rem;color:var(--rose)}
+.cp-item svg{width:14px;height:14px;stroke:var(--orb);fill:none;stroke-width:1.5;flex-shrink:0}
+.tone-row{display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap}
+.tone-pill{padding:.4rem .9rem;border-radius:100px;font-size:.72rem;border:1px solid var(--cream);color:var(--rose);cursor:pointer}
+.tone-pill.active{background:var(--dark);color:var(--white);border-color:var(--dark)}
+/* DIFFERENT */
+.different{background:var(--bg);overflow:hidden}
+.diff-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center}
+.diff-left p{font-size:.97rem;color:var(--rose);line-height:1.8;margin-bottom:1.25rem;margin-top:1.5rem}
+.diff-right{position:relative}
+.big-quote{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(1.3rem,2.2vw,1.7rem);color:var(--dark);line-height:1.5;position:relative;padding-left:2rem}
+.big-quote::before{content:'"';position:absolute;left:0;top:-.5rem;font-family:'Playfair Display',serif;font-size:5rem;color:var(--cream);line-height:1}
+.q-author{font-size:.8rem;color:var(--soft);margin-top:1.5rem;padding-left:2rem}
+.diff-blob{position:absolute;width:350px;height:350px;background:radial-gradient(circle,rgba(196,168,168,.25),transparent 70%);border-radius:50%;bottom:-100px;right:-100px;pointer-events:none}
+/* TESTIMONIALS */
+.testimonials{background:var(--bg2)}
+.testi-flow{display:flex;flex-direction:column;gap:0;margin-top:4rem}
+.testi-item{display:grid;grid-template-columns:1fr 2fr;gap:4rem;align-items:start;padding:3rem 0;border-bottom:1px solid rgba(154,104,104,.08)}
+.testi-item:last-child{border-bottom:none}
+.testi-who{text-align:right}
+.testi-av{width:40px;height:40px;border-radius:50%;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:500;color:var(--orb);margin-left:auto;margin-bottom:.6rem}
+.testi-name{font-size:.85rem;font-weight:500;color:var(--dark)}
+.testi-role{font-size:.75rem;color:var(--soft)}
+.testi-quote{font-family:'Playfair Display',serif;font-style:italic;font-size:1.2rem;color:var(--dark);line-height:1.6}
+.testi-stars{color:var(--orb);font-size:.7rem;margin-top:.75rem;letter-spacing:2px}
+/* WAITLIST */
+.waitlist{background:var(--bg);text-align:center;position:relative;overflow:hidden}
+.wl-blob1{position:absolute;width:700px;height:700px;background:radial-gradient(circle,rgba(196,168,168,.28),transparent 70%);border-radius:50%;top:-250px;right:-200px;pointer-events:none}
+.wl-blob2{position:absolute;width:500px;height:500px;background:radial-gradient(circle,rgba(212,176,168,.2),transparent 70%);border-radius:50%;bottom:-200px;left:-150px;pointer-events:none}
+.wl-inner{max-width:560px;margin:0 auto;position:relative;z-index:1}
+.wl-inner .s-tag{justify-content:center}
+.wl-inner h2.t{margin-bottom:1rem}
+.wl-inner>p{font-size:.97rem;color:var(--rose);line-height:1.75;margin-bottom:2.5rem}
+.wl-form{text-align:left}
+.wl-form input,.wl-form textarea{width:100%;padding:.9rem 1.25rem;border:1px solid rgba(154,104,104,.2);border-radius:14px;font-family:'Outfit',sans-serif;font-size:.9rem;color:var(--dark);background:var(--white);margin-bottom:.85rem;outline:none;transition:border-color .2s}
+.wl-form input::placeholder,.wl-form textarea::placeholder{color:var(--soft)}
+.wl-form input:focus,.wl-form textarea:focus{border-color:var(--orb)}
+.wl-form textarea{resize:none;height:85px}
+.wl-form .btn{width:100%;text-align:center;padding:1rem;font-size:.95rem;margin-top:.25rem}
+.wl-note{font-size:.73rem;color:var(--soft);margin-top:1rem;text-align:center}
+/* PRICING */
+.pricing{background:var(--bg2)}
+.price-note{font-size:.93rem;color:var(--rose);margin:.75rem 0 3.5rem;max-width:440px;line-height:1.7}
+.price-row{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.price-col{padding:2.75rem 2.5rem;background:var(--white);transition:transform .3s;border-right:1px solid rgba(154,104,104,.06)}
+.price-col:last-child{border-right:none}
+.price-col.featured{background:var(--dark);transform:translateY(-12px)}
+.price-col:hover:not(.featured){transform:translateY(-4px)}
+.pc-plan{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin-bottom:1rem}
+.price-col.featured .pc-plan{color:rgba(196,168,168,.5)}
+.pc-amount{font-family:'Playfair Display',serif;font-size:3rem;color:var(--orb);line-height:1;margin-bottom:.25rem}
+.price-col.featured .pc-amount{color:var(--soft)}
+.pc-per{font-size:.8rem;color:var(--rose);margin-bottom:2.25rem}
+.price-col.featured .pc-per{color:rgba(196,168,168,.5)}
+.pc-list{list-style:none;display:flex;flex-direction:column;gap:.7rem;margin-bottom:2.5rem}
+.pc-list li{font-size:.87rem;color:var(--rose);display:flex;align-items:center;gap:.55rem}
+.price-col.featured .pc-list li{color:rgba(196,168,168,.75)}
+.pc-list li::before{content:'✦';font-size:.48rem;color:var(--orb);flex-shrink:0}
+.price-col.featured .pc-list li::before{color:var(--soft)}
+.price-col .btn-ghost{width:100%;text-align:center}
+.price-col.featured .btn{width:100%;text-align:center}
+/* FOOTER */
+footer{background:var(--dark);padding:5rem 5% 2.5rem}
+.foot-inner{max-width:1100px;margin:0 auto}
+.foot-top{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:4rem;padding-bottom:4rem;border-bottom:1px solid rgba(196,168,168,.08);margin-bottom:2rem}
+.foot-logo{font-family:'Playfair Display',serif;font-style:italic;font-size:1.6rem;color:var(--white);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.foot-sub{font-size:.85rem;color:rgba(196,168,168,.45);line-height:1.65;max-width:240px}
+.foot-col h4{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(196,168,168,.35);margin-bottom:1rem}
+.foot-col ul{list-style:none;display:flex;flex-direction:column;gap:.6rem}
+.foot-col ul a{font-size:.85rem;color:rgba(196,168,168,.55);transition:color .2s}
+.foot-col ul a:hover{color:var(--white)}
+.foot-bottom{display:flex;justify-content:space-between;align-items:center}
+.foot-copy{font-size:.75rem;color:rgba(196,168,168,.3)}
+.foot-private{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(196,168,168,.25)}
+/* ANIMATIONS */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .75s ease,transform .75s ease}
+.reveal.in{opacity:1;transform:translateY(0)}
+/* RESPONSIVE */
+@media(max-width:900px){
+  nav{padding:1rem 5%}
+  .nav-links{display:none}
+  .hero-inner{grid-template-columns:1fr;text-align:center}
+  .hero-sub{margin:0 auto 2.5rem}
+  .hero-btns{justify-content:center}
+  .hero-social{justify-content:center}
+  .hero-right{display:none}
+  .problem-body,.diff-inner{grid-template-columns:1fr;gap:3rem}
+  .what-cols{grid-template-columns:1fr}
+  .feat-row{grid-template-columns:1fr;gap:2.5rem}
+  .feat-row.rev .feat-text,.feat-row.rev .feat-visual{order:unset}
+  .price-row{grid-template-columns:1fr}
+  .price-col.featured{transform:none}
+  .testi-item{grid-template-columns:1fr;gap:1rem}
+  .testi-who{text-align:left;display:flex;align-items:center;gap:1rem}
+  .testi-av{margin:0}
+  .foot-top{grid-template-columns:1fr 1fr;gap:2.5rem}
+  .foot-bottom{flex-direction:column;gap:.75rem;text-align:center}
+  section{padding:5rem 5%}
+}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="/" class="nav-logo">
+    <div class="logo-orb"><svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M10 2L10.9 9.1L18 10L10.9 10.9L10 18L9.1 10.9L2 10L9.1 9.1Z" fill="white"/></svg></div>
+    Aevi
+  </a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><span class="nav-badge">Closed testing</span></li>
+  </ul>
+  <a href="https://aevi-waitlist.vercel.app/" class="btn">Join waitlist</a>
+</nav>
+
+<div class="strip"><span class="strip-dot"></span>Currently in closed testing &nbsp;·&nbsp; Early access is limited &nbsp;·&nbsp; Join the waitlist to be first</div>
+
+<section class="hero">
+  <div class="hblob hb1"></div><div class="hblob hb2"></div>
+  <div class="hero-inner">
+    <div>
+      <div class="eyebrow"><span class="live-dot"></span>Private AI companion</div>
+      <h1>Meet your<br><em>alter ego.</em></h1>
+      <p class="hero-sub">An AI that grows with you — quietly remembering your story, reflecting your thinking, and turning raw thoughts into real clarity.</p>
+      <div class="hero-btns">
+        <a href="https://aevi-waitlist.vercel.app/" class="btn">Join the waitlist</a>
+        <a href="#about" class="btn-ghost">See how it works</a>
+      </div>
+      <div class="hero-social">
+        <div class="avatars"><div class="av">S</div><div class="av">M</div><div class="av">L</div><div class="av">R</div></div>
+        247+ already waiting
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="phone-wrap">
+        <!-- Glow behind phone -->
+        <div class="phone-glow"></div>
+        <!-- Sparkles -->
+        <div class="sparkle" style="top:8%;left:8%;--dur:3.5s;--del:0s"></div>
+        <div class="sparkle" style="top:15%;right:12%;--dur:4.5s;--del:.7s"></div>
+        <div class="sparkle" style="bottom:20%;left:5%;--dur:5s;--del:1.2s"></div>
+        <div class="sparkle" style="bottom:10%;right:8%;--dur:3s;--del:.3s"></div>
+        <!-- Floating cards -->
+        <div class="chip ch1"><div class="ch-ico"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="ch-t"><strong>7-day streak</strong>Reflecting daily</div></div>
+        <div class="chip ch2 quote-chip"><p class="qc-text">"I finally feel understood — by myself."</p><div class="qc-author"><span class="qc-dot"></span>Beta user</div></div>
+        <div class="chip ch3 status-chip"><span class="status-dot"></span><span>✦ Reflective</span></div>
+        <div class="chip ch4"><div class="mood-card"><div class="mood-ring"><svg width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#EFE0D5" stroke-width="3"/><circle cx="18" cy="18" r="15" fill="none" stroke="#9A6868" stroke-width="3" stroke-dasharray="82 94" stroke-linecap="round"/></svg></div><div class="mood-score">87%</div><div class="mood-label">Clarity score</div></div></div>
+        <div class="chip ch5"><div class="ch-ico"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13"/></svg></div><div class="ch-t"><strong>Journal this</strong>Save as reflection</div></div>
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="s-head"><div class="s-av"><svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M10 2L10.9 9.1L18 10L10.9 10.9L10 18L9.1 10.9L2 10L9.1 9.1Z" fill="white"/></svg></div><div><div class="s-name">Aevi</div><div class="s-status">✦ Reflective</div></div></div>
+            <div class="s-body">
+              <div class="m-ai">How are you carrying yourself today?</div>
+              <div class="m-you">Scattered. Too many ideas.</div>
+              <div class="m-ai">That tension between abundance and clarity — it's often when your best thinking is about to arrive.</div>
+              <div class="m-you">I think I'm scared of choosing wrong.</div>
+              <div class="m-ai">Fear of the wrong choice often means you care deeply about the right one. ✦</div>
+            </div>
+            <div class="s-input"><span>A thought, a question…</span><div class="s-send"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
+            <div class="s-nav">
+              <div class="sn on"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span>Chat</span></div>
+              <div class="sn"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><span>Journal</span></div>
+              <div class="sn"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><span>Insights</span></div>
+              <div class="sn"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg><span>Profile</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave"><svg viewBox="0 0 1440 60" preserveAspectRatio="none" height="60"><path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#EFE0D5"/></svg></div>
+<div class="marquee"><div class="marquee-inner"><span class="mi">Private <span class="dot">✦</span></span><span class="mi">Remembered <span class="dot">✦</span></span><span class="mi">Yours <span class="dot">✦</span></span><span class="mi">Reflect <span class="dot">✦</span></span><span class="mi">Journal <span class="dot">✦</span></span><span class="mi">Understand <span class="dot">✦</span></span><span class="mi">Grow <span class="dot">✦</span></span><span class="mi">Evolve <span class="dot">✦</span></span><span class="mi">Private <span class="dot">✦</span></span><span class="mi">Remembered <span class="dot">✦</span></span><span class="mi">Yours <span class="dot">✦</span></span><span class="mi">Reflect <span class="dot">✦</span></span><span class="mi">Journal <span class="dot">✦</span></span><span class="mi">Understand <span class="dot">✦</span></span><span class="mi">Grow <span class="dot">✦</span></span><span class="mi">Evolve <span class="dot">✦</span></span></div></div>
+<div class="wave"><svg viewBox="0 0 1440 60" preserveAspectRatio="none" height="60"><path d="M0,30 C360,0 1080,60 1440,30 L1440,0 L0,0 Z" fill="#EFE0D5"/></svg></div>
+
+<section class="problem">
+  <div class="p-glow"></div>
+  <div class="inner">
+    <div class="s-tag">The problem</div>
+    <h2 class="t">Most tools forget<br><em>you exist.</em></h2>
+    <div class="problem-body reveal">
+      <div class="p-copy">
+        <p>Every conversation starts from zero. Every journaling app is just a blank page. Every AI gives the same answer to everyone.</p>
+        <p>You've spent years building thoughts, ideas, and self-awareness — but none of your tools remember any of it.</p>
+        <p>Aevi is different. It's built around you, not the other way around.</p>
+      </div>
+      <div class="p-list">
+        <div class="p-item"><div class="p-ico"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div><h4>AI that forgets you</h4><p>Every session starts over. Nothing carries forward. You explain yourself again and again.</p></div></div>
+        <div class="p-item"><div class="p-ico"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13"/></svg></div><div><h4>Journals that don't think</h4><p>Writing helps, but a blank page never asks the question that unlocks the insight.</p></div></div>
+        <div class="p-item"><div class="p-ico"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg></div><div><h4>No private space to think</h4><p>Everything is social, public, or analyzed. There's nowhere to just think out loud, safely.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave" style="background:var(--dark)"><svg viewBox="0 0 1440 70" preserveAspectRatio="none" height="70"><path d="M0,35 C480,70 960,0 1440,35 L1440,70 L0,70 Z" fill="#FDF6F0"/></svg></div>
+
+<section class="what" id="about">
+  <div class="inner">
+    <div class="what-intro reveal">
+      <div class="s-tag">What is Aevi</div>
+      <h2 class="t">Not just an AI.<br><em>Your second mind.</em></h2>
+      <p>Aevi is a private AI alter ego that remembers, reflects, and evolves with you over time. Share a thought — it listens. Share a pattern — it notices. Share your story — it grows alongside it.</p>
+    </div>
+    <div class="what-cols">
+      <div class="wcol reveal"><div class="wcol-num">01</div><div class="wcol-divider"></div><h3>Share a thought</h3><p>A journal entry, a passing idea, a decision you're wrestling with. Anything. Aevi is always listening — without judgment.</p></div>
+      <div class="wcol reveal"><div class="wcol-num">02</div><div class="wcol-divider"></div><h3>Aevi learns you</h3><p>Your tone, your patterns, your context. Over time, it builds a private picture of who you are — and how you think.</p></div>
+      <div class="wcol reveal"><div class="wcol-num">03</div><div class="wcol-divider"></div><h3>Get real clarity</h3><p>Reflections, insights, summaries, content drafts — written in your voice, not a generic AI tone.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="wave"><svg viewBox="0 0 1440 60" preserveAspectRatio="none" height="60"><path d="M0,0 C480,60 960,0 1440,60 L1440,60 L0,60 Z" fill="#F5EAE1"/></svg></div>
+
+<section class="features" id="features">
+  <div class="inner">
+    <div class="s-tag">Features</div>
+    <h2 class="t">Built around<br><em>your inner world.</em></h2>
+    <div class="feat-rows">
+      <div class="feat-row reveal">
+        <div class="feat-text"><div class="feat-ico"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg></div><h3>Long-term memory</h3><p>Aevi remembers what matters — your goals, patterns, and past conversations — so every session builds on the last. The longer you use it, the more it knows you.</p><span class="feat-pill">Persistent context</span></div>
+        <div class="feat-visual"><div class="feat-bubble"><div class="fb-label">✦ Aevi noticed</div><p class="fb-text">"You've mentioned feeling 'behind' three times this week. Behind on what — and according to whose timeline?"</p></div></div>
+      </div>
+      <div class="feat-row rev reveal">
+        <div class="feat-text"><div class="feat-ico"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div><h3>Journal that thinks back</h3><p>Write freely and get reflections back. Aevi asks the question you didn't know you needed, and surfaces what matters beneath what was said.</p><span class="feat-pill">Active journaling</span></div>
+        <div class="feat-visual"><div class="feat-bubble"><div class="fb-label">Weekly insights</div><div class="fb-bar"><div class="fb-bar-item"><span>Clarity</span><div class="fb-bar-track"><div class="fb-bar-fill" style="width:82%"></div></div></div><div class="fb-bar-item"><span>Energy</span><div class="fb-bar-track"><div class="fb-bar-fill" style="width:65%"></div></div></div><div class="fb-bar-item"><span>Focus</span><div class="fb-bar-track"><div class="fb-bar-fill" style="width:74%"></div></div></div></div><div class="insight-msg" style="margin-top:1rem"><div class="im-head"><svg width="10" height="10" viewBox="0 0 20 20" fill="none"><path d="M10 2L10.9 9.1L18 10L10.9 10.9L10 18L9.1 10.9L2 10L9.1 9.1Z" fill="#C4A8A8"/></svg>Aevi's take</div><p class="im-text">"Your clarity peaks on Tuesdays. You do your best thinking before 11am."</p></div></div></div>
+      </div>
+      <div class="feat-row reveal">
+        <div class="feat-text"><div class="feat-ico"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg></div><h3>Thoughts into content</h3><p>Turn raw reflections into polished posts, summaries, or drafts — written in your voice, not a generic AI tone. Your ideas, finally ready to share.</p><span class="feat-pill">Content generation</span></div>
+        <div class="feat-visual"><div class="feat-bubble"><div class="content-preview"><div class="cp-tag">From your last journal entry —</div><div class="cp-item"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Journal this</div><div class="cp-item"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 11l6.586-6.586a2 2 0 012.828 0L20 6a2 2 0 010 2.828L13.414 15H9v-4z"/></svg>Turn into content</div><div class="cp-item"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>Generate insight</div></div></div></div>
+      </div>
+      <div class="feat-row rev reveal">
+        <div class="feat-text"><div class="feat-ico"><svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg></div><h3>Your tone, your voice</h3><p>Choose how Aevi speaks to you — gentle, direct, or motivating. It adapts to what you need, when you need it.</p><span class="feat-pill">Personalised experience</span></div>
+        <div class="feat-visual"><div class="feat-bubble"><div class="fb-label">Tone settings</div><p style="font-size:.8rem;color:var(--rose);margin:.6rem 0 1rem">How Aevi reflects your thoughts back to you</p><div class="tone-row"><div class="tone-pill">Gentle</div><div class="tone-pill active">Direct</div><div class="tone-pill">Motivating</div></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave" style="background:var(--bg2)"><svg viewBox="0 0 1440 70" preserveAspectRatio="none" height="70"><path d="M0,35 C360,0 1080,70 1440,35 L1440,70 L0,70 Z" fill="#FDF6F0"/></svg></div>
+
+<section class="different">
+  <div class="diff-inner reveal">
+    <div class="diff-left">
+      <div class="s-tag">Why different</div>
+      <h2 class="t">Not a chatbot.<br><em>A companion.</em></h2>
+      <p>Most AI tools are built to answer questions. Aevi is built to know you. There's a fundamental difference between a tool that responds and one that remembers.</p>
+      <p>The longer you use Aevi, the more useful it becomes. Your story accumulates. Patterns emerge. Connections form between things you said weeks apart.</p>
+      <p>Private. Evolving. Completely yours.</p>
+    </div>
+    <div class="diff-right">
+      <div class="diff-blob"></div>
+      <p class="big-quote">I finally feel understood — by myself. Aevi doesn't give me answers. It gives me the right questions.</p>
+      <p class="q-author">— Beta tester, product designer</p>
+    </div>
+  </div>
+</section>
+
+<div class="wave"><svg viewBox="0 0 1440 60" preserveAspectRatio="none" height="60"><path d="M0,60 C480,0 960,60 1440,0 L1440,60 L0,60 Z" fill="#F5EAE1"/></svg></div>
+
+<section class="testimonials">
+  <div class="inner">
+    <div class="s-tag">Early testers</div>
+    <h2 class="t">People are already<br><em>feeling it.</em></h2>
+    <div class="testi-flow">
+      <div class="testi-item reveal"><div class="testi-who"><div class="testi-av">S</div><div class="testi-name">Sara K.</div><div class="testi-role">Product designer</div></div><div><p class="testi-quote">"It's the first AI that actually feels like it knows me. After a week it started connecting dots I hadn't even noticed myself. I look forward to opening it every morning."</p><div class="testi-stars">✦ ✦ ✦ ✦ ✦</div></div></div>
+      <div class="testi-item reveal"><div class="testi-who"><div class="testi-av">M</div><div class="testi-name">Marcus T.</div><div class="testi-role">Founder & builder</div></div><div><p class="testi-quote">"I've tried every journaling app. Aevi is different — it pushes back, asks better questions, and actually remembers what I told it last week. It's become part of my thinking routine."</p><div class="testi-stars">✦ ✦ ✦ ✦ ✦</div></div></div>
+      <div class="testi-item reveal"><div class="testi-who"><div class="testi-av">L</div><div class="testi-name">Leila R.</div><div class="testi-role">Writer & creative</div></div><div><p class="testi-quote">"I use it to process big decisions. Having something that remembers context from three weeks ago and brings it back at the right moment — that's genuinely useful in a way I didn't expect."</p><div class="testi-stars">✦ ✦ ✦ ✦ ✦</div></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="wave" style="background:var(--bg2)"><svg viewBox="0 0 1440 60" preserveAspectRatio="none" height="60"><path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#FDF6F0"/></svg></div>
+
+<section class="waitlist" id="waitlist">
+  <div class="wl-blob1"></div><div class="wl-blob2"></div>
+  <div class="wl-inner">
+    <div class="s-tag">Early access</div>
+    <h2 class="t">Your companion<br><em>is waiting.</em></h2>
+    <p>We're opening access in small batches. Join the waitlist to be first in — and receive early access perks when Aevi launches publicly.</p>
+    <div class="wl-form reveal">
+      <input type="text" placeholder="Your name">
+      <input type="email" placeholder="Your email address">
+      <textarea placeholder="What would you use Aevi for? (optional)"></textarea>
+      <a href="https://aevi-waitlist.vercel.app/" class="btn">Join the waitlist →</a>
+      <p class="wl-note">Free to join · No credit card · Unsubscribe anytime</p>
+    </div>
+  </div>
+</section>
+
+<div class="wave"><svg viewBox="0 0 1440 60" preserveAspectRatio="none" height="60"><path d="M0,0 C480,60 960,0 1440,60 L1440,60 L0,60 Z" fill="#F5EAE1"/></svg></div>
+
+<section class="pricing" id="pricing">
+  <div class="inner">
+    <div class="s-tag">Pricing</div>
+    <h2 class="t">Simple, honest<br><em>pricing.</em></h2>
+    <p class="price-note">Free to start, always. Upgrade when Aevi becomes something you can't imagine thinking without.</p>
+    <div class="price-row reveal">
+      <div class="price-col"><div class="pc-plan">Free forever</div><div class="pc-amount">€0</div><div class="pc-per">always free</div><ul class="pc-list"><li>10 messages per day</li><li>Basic memory</li><li>Journal — 5 entries</li><li>Daily reflection prompt</li></ul><a href="https://aevi-waitlist.vercel.app/" class="btn-ghost">Get started</a></div>
+      <div class="price-col featured"><div class="pc-plan">Most popular</div><div class="pc-amount">€9</div><div class="pc-per">per month</div><ul class="pc-list"><li>Unlimited messages</li><li>Full long-term memory</li><li>Unlimited journal</li><li>Insights dashboard</li><li>Content generation</li></ul><a href="https://aevi-waitlist.vercel.app/" class="btn">Join waitlist</a></div>
+      <div class="price-col"><div class="pc-plan">Full power</div><div class="pc-amount">€19</div><div class="pc-per">per month</div><ul class="pc-list"><li>Everything in Plus</li><li>Priority responses</li><li>Advanced insights</li><li>No Aevi watermark</li><li>Early feature access</li></ul><a href="https://aevi-waitlist.vercel.app/" class="btn-ghost">Join waitlist</a></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-inner">
+    <div class="foot-top">
+      <div><div class="foot-logo"><div class="logo-orb"><svg width="12" height="12" viewBox="0 0 20 20" fill="none"><path d="M10 2L10.9 9.1L18 10L10.9 10.9L10 18L9.1 10.9L2 10L9.1 9.1Z" fill="white"/></svg></div>Aevi</div><p class="foot-sub">Your private second mind. Thank you for helping shape Aevi.</p></div>
+      <div class="foot-col"><h4>Product</h4><ul><li><a href="#about">About</a></li><li><a href="#features">Features</a></li><li><a href="#pricing">Pricing</a></li><li><a href="https://aevi-waitlist.vercel.app/">Waitlist</a></li></ul></div>
+      <div class="foot-col"><h4>Legal</h4><ul><li><a href="/privacy.html">Privacy Policy</a></li><li><a href="/terms.html">Terms of Service</a></li></ul></div>
+      <div class="foot-col"><h4>Contact</h4><ul><li><a href="mailto:aevi.support@gmail.com">aevi.support@gmail.com</a></li><li><a href="https://myaevi.app">myaevi.app</a></li></ul></div>
+    </div>
+    <div class="foot-bottom"><span class="foot-copy">© 2026 Aevi. All rights reserved to Nandini Miriyala.</span><span class="foot-private">Private · Remembered · Yours</span></div>
+  </div>
+</footer>
+
+<script>
+const obs=new IntersectionObserver(entries=>{entries.forEach((e,i)=>{if(e.isIntersecting)setTimeout(()=>e.target.classList.add('in'),i*80)})},{threshold:.08});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+let last=0;const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{const y=window.scrollY;nav.style.transform=y>last&&y>80?'translateY(-100%)':'translateY(0)';last=y},{passive:true});
+</script>
+</body>
+</html>
