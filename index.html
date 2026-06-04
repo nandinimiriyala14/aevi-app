@@ -356,36 +356,36 @@ nav.scrolled {
 
 /* ── ACCORDION ── */
 .hero-right {
-  flex: 1; display: flex; gap: 8px;
-  height: 500px; align-items: stretch;
+  flex: 1; display: flex; gap: 12px;
+  height: 560px; align-items: center;
   overflow: hidden; min-width: 0;
 }
 .acc {
   position: relative; height: 100%;
-  border-radius: var(--shape-xl);
+  border-radius: 32px;
   overflow: hidden; cursor: pointer;
   transition: width var(--dur-xl) var(--motion-emphasized);
-  width: 58px; flex-shrink: 0;
-  background: var(--md-inverse-surface);
-  box-shadow: var(--elev-3);
+  width: 56px; flex-shrink: 0;
+  background: var(--md-surface-container-high);
+  box-shadow: var(--elev-2);
 }
-.acc.open { width: 360px }
+.acc.open { width: 400px }
 .acc img {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover; object-position: top center;
   transition: opacity var(--dur-long) var(--motion-standard),
               filter var(--dur-long) var(--motion-standard);
-  filter: saturate(.4) brightness(.6);
+  filter: saturate(.5) brightness(.8);
 }
 .acc.open img { filter: saturate(1) brightness(1) }
-.acc:not(.open) img { opacity: .55 }
+.acc:not(.open) img { opacity: .5 }
 /* M3 scrim */
 .acc-scrim {
   position: absolute; inset: 0;
   background: linear-gradient(0deg,
-    rgba(32,26,26,.92) 0%,
-    rgba(32,26,26,.45) 55%,
+    rgba(32,26,26,.85) 0%,
+    rgba(32,26,26,.2) 40%,
     transparent 100%);
   opacity: 0;
   transition: opacity var(--dur-medium) var(--motion-standard);
