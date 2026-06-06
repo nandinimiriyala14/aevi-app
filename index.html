@@ -272,32 +272,7 @@ nav.scrolled {
 }
 .hero-left { width: 100% }
 
-/* M3 Assist chip */
-.hero-chip {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: var(--md-surface-container);
-  border: 1px solid var(--md-outline-variant);
-  border-radius: var(--shape-full);
-  padding: 6px 14px;
-  font-size: var(--type-label-md); font-weight: 500;
-  color: var(--md-on-surface-variant);
-  letter-spacing: .04em; text-transform: uppercase;
-  margin-bottom: 16px;
-}
-.chip-dot {
-  width: 6px; height: 6px;
-  background: var(--md-primary); border-radius: 50%;
-  position: relative;
-}
-.chip-dot::after {
-  content: ''; position: absolute; inset: -4px;
-  border-radius: 50%; border: 1.5px solid var(--md-primary);
-  animation: chip-ring 2s ease-out infinite;
-}
-@keyframes chip-ring {
-  from { transform: scale(1); opacity: .8 }
-  to   { transform: scale(2.4); opacity: 0 }
-}
+
 
 /* Display Large */
 .hero h1 {
@@ -910,10 +885,6 @@ footer {
 
     <!-- Left: copy -->
     <div class="hero-left">
-      <div class="hero-chip sr left">
-        <span class="chip-dot"></span>
-        Private AI companion
-      </div>
       <h1 class="sr up d1">Your private AI<br>that <em>remembers.</em></h1>
       <p class="hero-body sr up d2">
         Chat, journal, and get weekly insights — with an AI that actually knows your history. No starting over. No generic replies. Just you, thinking clearly.
@@ -994,21 +965,18 @@ footer {
         <div class="action-num">01</div>
         <h3><em>Chat.</em> It remembers.</h3>
         <p>Every reply is informed by your history — your goals, past conversations, recurring patterns. You never have to catch it up. It already knows.</p>
-        <span class="action-chip">Android · Google Play</span>
       </div>
 
       <div class="action-col sr up d2">
         <div class="action-num">02</div>
         <h3><em>Journal.</em> Then act on it.</h3>
         <p>Long press any message to journal it, rewrite it, or turn it into a content draft. Your thoughts don't just sit there — they become something useful.</p>
-        <span class="action-chip">Private · Encrypted</span>
       </div>
 
       <div class="action-col sr up d3">
         <div class="action-num">03</div>
         <h3><em>Insights.</em> Without asking.</h3>
         <p>Every week, Aevi automatically surfaces mood patterns, recurring themes, and observations from your conversations — without you doing anything extra.</p>
-        <span class="action-chip">Weekly · Automatic</span>
       </div>
 
     </div>
@@ -1052,57 +1020,33 @@ footer {
     <div class="feat-grid">
 
       <div class="feat-card sr up">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>
-        </div>
         <h3>Memory that persists</h3>
         <p>Aevi carries your context across every session. Reference something you said three weeks ago — it already knows.</p>
-        <span class="feat-tag">Persistent context</span>
       </div>
 
       <div class="feat-card sr up d1">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-        </div>
         <h3>Private by design</h3>
         <p>No ads, no data selling, no shared conversations. Your memory bank is encrypted and clearable from settings any time.</p>
-        <span class="feat-tag">End-to-end private</span>
       </div>
 
       <div class="feat-card sr up d1">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-        </div>
         <h3>Thoughts into content</h3>
         <p>Long press any message to turn it into a journal entry, content draft, or summary — written in your tone, not a template.</p>
-        <span class="feat-tag">Content generation</span>
       </div>
 
       <div class="feat-card sr up d2">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-        </div>
         <h3>Weekly insights</h3>
         <p>Mood shifts, recurring themes, behavioural patterns — surfaced automatically each week without you lifting a finger.</p>
-        <span class="feat-tag">Automatic</span>
       </div>
 
       <div class="feat-card sr up d2">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-        </div>
         <h3>Tone that adapts</h3>
         <p>Set Aevi to Gentle, Direct, or Motivating. Change it any time from Profile → Tone Settings.</p>
-        <span class="feat-tag">Personalised</span>
       </div>
 
       <div class="feat-card sr up d3">
-        <div class="feat-icon">
-          <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        </div>
         <h3>Search your history</h3>
         <p>Search past conversations to find what you said, what Aevi noticed, and how your thinking has shifted over time.</p>
-        <span class="feat-tag">Full history</span>
       </div>
 
     </div>
