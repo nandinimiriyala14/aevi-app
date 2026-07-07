@@ -44,7 +44,7 @@ export async function getSession() {
 
 export async function resetPassword(email: string) {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'https://myaevi.app/reset-password.html',
+    redirectTo: 'https://www.myaevi.app/reset-password.html',
   });
   return { error };
 }
