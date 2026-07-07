@@ -502,5 +502,11 @@ document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 let last=0;const nav=document.getElementById('nav');
 window.addEventListener('scroll',()=>{const y=window.scrollY;nav.style.transform=y>last&&y>80?'translateY(-100%)':'translateY(0)';last=y},{passive:true});
 </script>
+  <script>
+  // If this is a password recovery redirect, forward to reset page
+  if (window.location.hash && window.location.hash.includes('type=recovery')) {
+    window.location.href = '/reset-password.html' + window.location.hash;
+  }
+</script>
 </body>
 </html>
